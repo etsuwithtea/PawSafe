@@ -164,7 +164,7 @@ export default function UsersPage() {
                     onChange={handleChange}
                     placeholder="Enter username"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
@@ -177,7 +177,7 @@ export default function UsersPage() {
                     onChange={handleChange}
                     placeholder="Enter email"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
@@ -191,7 +191,7 @@ export default function UsersPage() {
                       onChange={handleChange}
                       placeholder="Enter password"
                       required={!editingId}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 )}
@@ -204,7 +204,7 @@ export default function UsersPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Enter phone number"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
@@ -216,7 +216,7 @@ export default function UsersPage() {
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Enter address"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
@@ -226,7 +226,7 @@ export default function UsersPage() {
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -239,7 +239,7 @@ export default function UsersPage() {
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -318,13 +318,13 @@ export default function UsersPage() {
                       <td className="px-6 py-4 space-x-2">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded transition duration-200 inline-block"
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-sm transition duration-200 inline-block"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(user._id)}
-                          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded transition duration-200 inline-block"
+                          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-sm transition duration-200 inline-block"
                         >
                           Delete
                         </button>

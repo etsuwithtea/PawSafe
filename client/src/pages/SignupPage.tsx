@@ -70,7 +70,7 @@ export default function SignupPage() {
 
   if (user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome!</h1>
@@ -83,15 +83,15 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-3 mb-6">
-            <div className="bg-gray-50 p-3 rounded">
+            <div className="bg-gray-50 p-3 rounded-sm">
               <p className="text-xs text-gray-500">Email</p>
               <p className="text-gray-800 font-semibold">{user.email}</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded">
+            <div className="bg-gray-50 p-3 rounded-sm">
               <p className="text-xs text-gray-500">Username</p>
               <p className="text-gray-800 font-semibold">{user.username}</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded">
+            <div className="bg-gray-50 p-3 rounded-sm">
               <p className="text-xs text-gray-500">Role</p>
               <p className="text-gray-800 font-semibold capitalize">{user.role}</p>
             </div>
@@ -109,7 +109,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">PawSafe Signup</h1>
@@ -140,7 +140,7 @@ export default function SignupPage() {
               onChange={handleChange}
               placeholder="Choose your username"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -153,7 +153,7 @@ export default function SignupPage() {
               onChange={handleChange}
               placeholder="your@email.com"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function SignupPage() {
               onChange={handleChange}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -179,7 +179,7 @@ export default function SignupPage() {
               onChange={handleChange}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -191,7 +191,7 @@ export default function SignupPage() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Your phone number"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -203,7 +203,7 @@ export default function SignupPage() {
               value={formData.address}
               onChange={handleChange}
               placeholder="Your address"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 

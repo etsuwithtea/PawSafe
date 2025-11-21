@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 text-center">
           <p className="text-gray-600 mb-4">Please log in to access this page</p>
           <button
@@ -30,8 +30,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white shadow">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
+      <nav className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-indigo-600">PawSafe Dashboard</h1>
           <div className="flex gap-3">
@@ -56,7 +56,7 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Welcome, {user.username}!</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">User Information</h3>
               <div className="space-y-3">
                 <div>
@@ -80,7 +80,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Info</h3>
               <div className="space-y-3">
                 <div>

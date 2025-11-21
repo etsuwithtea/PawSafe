@@ -98,7 +98,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
+      <div className="bg-white border-b border-gray-200 p-4 shadow-xs">
         <h1 className="text-2xl font-bold text-gray-800">Chat</h1>
         <p className="text-sm text-gray-600 mt-1">
           User: <span className="font-semibold">{auth.user.username}</span>
@@ -117,7 +117,7 @@ export default function ChatPage() {
                 if (e.key === 'Enter') handleStartConversation();
               }}
               placeholder="Enter conversation ID..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
             />
             <button
               onClick={handleStartConversation}
@@ -181,7 +181,7 @@ export default function ChatPage() {
 
       {/* Error message */}
       {chat.error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 m-4 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 m-4 rounded-sm">
           {chat.error}
         </div>
       )}
@@ -196,7 +196,7 @@ export default function ChatPage() {
               onKeyDown={handleKeyDown}
               placeholder="Type a message... (Shift+Enter for new line)"
               rows={2}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-none text-gray-900 placeholder-gray-500"
             />
             <button
               onClick={handleSendMessage}
