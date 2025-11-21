@@ -1,13 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IMessage extends Document {
-  conversationId: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  timestamp: Date;
-  createdAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import type { IMessage } from '../types/message.js';
 
 const messageSchema = new Schema<IMessage>(
   {
@@ -38,7 +30,5 @@ const messageSchema = new Schema<IMessage>(
   }
 );
 
-// Create index for faster polling queries
 messageSchema.index({ conversationId: 1, timestamp: -1 });
-
 export const Message = mongoose.model<IMessage>('Message', messageSchema);
