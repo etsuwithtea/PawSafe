@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/database.js';
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
+import chatRoutes from './routes/chat.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
