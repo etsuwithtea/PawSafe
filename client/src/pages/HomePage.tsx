@@ -258,26 +258,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <section style={{ backgroundColor: '#4CAF50' }} className="py-30 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 
-              className="text-2xl md:text-5xl font-bold text-white"
-              style={{ fontFamily: 'Anuphan' }}
-            >สัตว์หายที่กลับบ้านแล้ว</h2>
-          </div>
-
-          <div className="flex justify-center">
-            <div className="text-center">
-              <p className="text-white text-4xl md:text-6xl font-bold" style={{ fontFamily: 'Anuphan' }}>
-                {stats.returnedPets} ตัว
-              </p>
-              <p className="text-white text-lg mt-4">สัตว์ที่ได้กลับคืนสู่ครอบครัวของมัน</p>
-            </div>
-          </div>
-        </div>
-      </section>
       <BackToTop />
     </div>
   );
