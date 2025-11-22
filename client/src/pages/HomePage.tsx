@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import BackToTop from '../components/BackToTop';
 import heroImage from '../assets/images/home/herosection_pic1.png';
 import adoptionImage from '../assets/images/home/herosection_pic2.png';
@@ -11,6 +12,12 @@ import foundSectionImage2 from '../assets/images/home/foundsection_pic2.png';
 import foundSectionImage3 from '../assets/images/home/foundsection_pic3.png';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
+  const handleAdoptionClick = () => {
+    navigate('/adoption');
+  };
+
   return (
     <div style={{ backgroundColor: '#FFFDFA' }}>
       <section style={{ backgroundColor: '#FFFDFA' }} className="relative overflow-visible pt-16 pb-20">
@@ -24,6 +31,7 @@ export default function HomePage() {
             style={{ fontFamily: 'Poppins, Anuphan' }}
           >เชื่อมโยงบ้านอบอุ่นกับสัตว์ที่ต้องการ และตามหาสัตว์เลี้ยงที่หายไปให้กลับคืนสู่อ้อมกอดอย่างปลอดภัย <br />ทุกชีวิตมีค่า ทุกการตามหามีความหมายสำหรับเรา</p>
           <button 
+            onClick={handleAdoptionClick}
             className="px-8 py-3 text-white bg-black rounded-md hover:bg-gray-800 hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 text-sm cursor-pointer"
             style={{ fontFamily: 'Poppins, Anuphan' }}
           >เริ่มหากันเลย</button>
@@ -39,7 +47,7 @@ export default function HomePage() {
             <img 
               src={adoptionImage} 
               alt="Adoption Section" 
-              className="w-full h-auto rounded-lg hover:scale-110 transition-transform duration-300 cursor-pointer"
+              className="w-full h-auto rounded-lg"
             />
           </div>
         </div>
