@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import BackToTop from '../components/BackToTop';
 import heroImage from '../assets/images/home/herosection_pic1.png';
 import adoptionImage from '../assets/images/home/herosection_pic2.png';
@@ -11,8 +12,58 @@ import foundSectionImage1 from '../assets/images/home/foundsection_pic1.png';
 import foundSectionImage2 from '../assets/images/home/foundsection_pic2.png';
 import foundSectionImage3 from '../assets/images/home/foundsection_pic3.png';
 
+interface Stats {
+  adoptedDogs: number;
+  adoptedCats: number;
+  adoptedOthers: number;
+  returnedPets: number;
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<Stats>({
+    adoptedDogs: 0,
+    adoptedCats: 0,
+    adoptedOthers: 0,
+    returnedPets: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch adopted pets
+        const adoptedResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/pets?status=adopted&limit=1000`
+        );
+        const adoptedData = await adoptedResponse.json();
+        
+        // Fetch returned lost pets
+        const returnedResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets?status=returned&limit=1000`
+        );
+        const returnedData = await returnedResponse.json();
+
+        const adoptedPets = adoptedData.data || [];
+        const returnedPets = returnedData.data || [];
+
+        const adoptedDogs = adoptedPets.filter((pet: any) => pet.species === 'dog').length;
+        const adoptedCats = adoptedPets.filter((pet: any) => pet.species === 'cat').length;
+        const adoptedOthers = adoptedPets.filter((pet: any) => pet.species === 'other').length;
+        const returnedCount = returnedPets.length;
+
+        setStats({
+          adoptedDogs,
+          adoptedCats,
+          adoptedOthers,
+          returnedPets: returnedCount,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleAdoptionClick = () => {
     navigate('/adoption');
@@ -179,7 +230,7 @@ export default function HomePage() {
                 className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
               />
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
-                65 ตัว
+                {stats.adoptedDogs} ตัว
               </p>
             </div>
 
@@ -190,7 +241,7 @@ export default function HomePage() {
                 className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
               />
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
-                86 ตัว
+                {stats.adoptedCats} ตัว
               </p>
             </div>
 
@@ -201,8 +252,28 @@ export default function HomePage() {
                 className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
               />
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
-                17 ตัว
+                {stats.adoptedOthers} ตัว
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ backgroundColor: '#4CAF50' }} className="py-30 px-4 md:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 
+              className="text-2xl md:text-5xl font-bold text-white"
+              style={{ fontFamily: 'Anuphan' }}
+            >สัตว์หายที่กลับบ้านแล้ว</h2>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="text-center">
+              <p className="text-white text-4xl md:text-6xl font-bold" style={{ fontFamily: 'Anuphan' }}>
+                {stats.returnedPets} ตัว
+              </p>
+              <p className="text-white text-lg mt-4">สัตว์ที่ได้กลับคืนสู่ครอบครัวของมัน</p>
             </div>
           </div>
         </div>

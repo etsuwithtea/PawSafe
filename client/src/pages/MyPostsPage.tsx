@@ -3,7 +3,8 @@ import { useAppSelector } from '../store/store';
 import PetCard from '../components/PetCard';
 import LostPetCard from '../components/LostPetCard';
 import Toast, { useToast } from '../components/Toast';
-import { Trash2 } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
+import { Trash2, Edit2 } from 'lucide-react';
 import type { Pet } from '../types/pet';
 import type { LostPet } from '../types/lostpet';
 
@@ -13,6 +14,19 @@ export default function MyPostsPage() {
   const [lostPetPosts, setLostPetPosts] = useState<LostPet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'adoption' | 'lost'>('adoption');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Pet | LostPet>>({});
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -70,37 +84,62 @@ export default function MyPostsPage() {
   }, [user]);
 
   const handleDeletePost = async (petId: string, isLostPet: boolean) => {
-    if (!window.confirm('คุณแน่ใจหรือว่าต้องการลบโพสต์นี้?')) {
-      return;
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'ยืนยันการลบโพสต์',
+      message: 'คุณแน่ใจหรือว่าต้องการลบโพสต์นี้? การลบไม่สามารถเลิกได้',
+      onConfirm: async () => {
+        try {
+          const endpoint = isLostPet ? 'lost-pets' : 'pets';
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${petId}`,
+            {
+              method: 'DELETE',
+            }
+          );
 
-    try {
-      const endpoint = isLostPet ? 'lost-pets' : 'pets';
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${petId}`,
-        {
-          method: 'DELETE',
+          if (!response.ok) {
+            throw new Error('Failed to delete post');
+          }
+
+          if (isLostPet) {
+            setLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
+          } else {
+            setAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
+          }
+
+          showToast('ลบโพสต์สำเร็จ!', 'success');
+          setConfirmModal({ ...confirmModal, isOpen: false });
+        } catch (error) {
+          console.error('Error deleting post:', error);
+          showToast('เกิดข้อผิดพลาดในการลบโพสต์', 'error');
+          setConfirmModal({ ...confirmModal, isOpen: false });
         }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to delete post');
-      }
-
-      if (isLostPet) {
-        setLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
-      } else {
-        setAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
-      }
-
-      showToast('ลบโพสต์สำเร็จ!', 'success');
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      showToast('เกิดข้อผิดพลาดในการลบโพสต์', 'error');
-    }
+      },
+    });
   };
 
   const handleStatusChange = async (petId: string, newStatus: string, isLostPet: boolean) => {
+    // Check if this is a final status change (adopted/returned)
+    if (
+      (newStatus === 'adopted' && !isLostPet) ||
+      (newStatus === 'returned' && isLostPet)
+    ) {
+      setConfirmModal({
+        isOpen: true,
+        title: 'สัตว์ได้บ้านแล้ว?',
+        message: 'เมื่อทำเครื่องหมายว่าสัตว์ได้บ้านแล้ว คุณต้องการให้โพสต์นี้อยู่หรือลบออก?',
+        onConfirm: async () => {
+          await updateStatus(petId, newStatus, isLostPet, false);
+          setConfirmModal({ ...confirmModal, isOpen: false });
+        },
+      });
+    } else {
+      updateStatus(petId, newStatus, isLostPet, false);
+    }
+  };
+
+  const updateStatus = async (petId: string, newStatus: string, isLostPet: boolean, deleteAfter: boolean) => {
     try {
       const endpoint = isLostPet ? 'lost-pets' : 'pets';
       const response = await fetch(
@@ -118,28 +157,22 @@ export default function MyPostsPage() {
         throw new Error('Failed to update post');
       }
 
-      if (
-        (newStatus === 'adopted' && !isLostPet) ||
-        (newStatus === 'found' && isLostPet)
-      ) {
-        const confirmDelete = window.confirm('สัตว์ได้บ้านแล้ว/เจอแล้ว ต้องการลบโพสต์นี้หรือไม่?');
-        if (confirmDelete) {
-          handleDeletePost(petId, isLostPet);
-        } else {
-          if (isLostPet) {
-            setLostPetPosts((prev) =>
-              prev.map((post) =>
-                post._id === petId ? { ...post, status: newStatus as any } : post
-              )
-            );
-          } else {
-            setAdoptionPosts((prev) =>
-              prev.map((post) =>
-                post._id === petId ? { ...post, status: newStatus as any } : post
-              )
-            );
-          }
-        }
+      if (isLostPet) {
+        setLostPetPosts((prev) =>
+          prev.map((post) =>
+            post._id === petId ? { ...post, status: newStatus as any } : post
+          )
+        );
+      } else {
+        setAdoptionPosts((prev) =>
+          prev.map((post) =>
+            post._id === petId ? { ...post, status: newStatus as any } : post
+          )
+        );
+      }
+
+      if (deleteAfter) {
+        setTimeout(() => handleDeletePost(petId, isLostPet), 500);
       }
 
       showToast('อัปเดตสถานะสำเร็จ!', 'success');
@@ -162,8 +195,18 @@ export default function MyPostsPage() {
   const totalPosts = adoptionPosts.length + lostPetPosts.length;
 
   return (
-    <div className="w-full bg-gray-50 py-8 mb-10" style={{ fontFamily: 'Poppins, Anuphan' }}>
+    <div className="w-full bg-gray-50 py-8" style={{ marginBottom: `${(40 + Math.ceil(totalPosts / 3) * 60)}px`, fontFamily: 'Poppins, Anuphan' }}>
       <Toast toasts={toasts} onRemove={removeToast} />
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        isDangerous={confirmModal.title === 'ยืนยันการลบโพสต์'}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+      />
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
           <h1
@@ -227,9 +270,18 @@ export default function MyPostsPage() {
                             className="w-full px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"
                           >
                             <option value="available">กำลังหาบ้าน</option>
-                            <option value="pending">รออนุมัติ</option>
-                            <option value="adopted">สัตว์ได้บ้านแล้ว</option>
+                            <option value="adopted">ได้บ้านแล้ว</option>
                           </select>
+                          <button
+                            onClick={() => {
+                              setEditingId(pet._id);
+                              setEditFormData(pet);
+                            }}
+                            className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Edit2 size={16} />
+                            แก้ไขโพสต์
+                          </button>
                           <button
                             onClick={() => handleDeletePost(pet._id, false)}
                             className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
@@ -263,9 +315,19 @@ export default function MyPostsPage() {
                             onChange={(e) => handleStatusChange(lostPet._id, e.target.value, true)}
                             className="w-full px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"
                           >
-                            <option value="lost">สัตว์หาย</option>
-                            <option value="found">เจอสัตว์แล้ว</option>
+                            <option value="lost">ยังหาไม่เจอ</option>
+                            <option value="returned">กลับบ้านแล้ว</option>
                           </select>
+                          <button
+                            onClick={() => {
+                              setEditingId(lostPet._id);
+                              setEditFormData(lostPet);
+                            }}
+                            className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Edit2 size={16} />
+                            แก้ไขโพสต์
+                          </button>
                           <button
                             onClick={() => handleDeletePost(lostPet._id, true)}
                             className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
@@ -283,6 +345,164 @@ export default function MyPostsPage() {
           </>
         )}
       </div>
+
+      {editingId && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto shadow-2xl drop-shadow-lg">
+            <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'Anuphan', color: '#FFA600' }}>
+              แก้ไขโพสต์
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold mb-2">ชื่อ</label>
+                <input
+                  type="text"
+                  value={(editFormData as any)?.name || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">รายละเอียด</label>
+                <textarea
+                  value={(editFormData as any)?.description || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm h-24"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">สถานที่</label>
+                <input
+                  type="text"
+                  value={(editFormData as any)?.location || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">รูปภาพ</label>
+                <div className="space-y-2">
+                  {(editFormData as any)?.images && (editFormData as any).images.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {(editFormData as any).images.map((img: string, idx: number) => (
+                        <div key={idx} className="relative group">
+                          <img src={img} alt={`preview-${idx}`} className="w-full h-24 object-cover rounded-lg" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditFormData({
+                                ...editFormData,
+                                images: (editFormData as any).images.filter((_: string, i: number) => i !== idx)
+                              });
+                            }}
+                            className="absolute top-1 right-1 bg-black text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length === 0) return;
+
+                      const formData = new FormData();
+                      files.forEach(file => formData.append('images', file));
+
+                      try {
+                        const isLostPet = 'lostDate' in editFormData;
+                        const endpoint = isLostPet ? 'lost-pets' : 'pets';
+                        const response = await fetch(
+                          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/upload-images`,
+                          {
+                            method: 'POST',
+                            body: formData,
+                          }
+                        );
+
+                        if (!response.ok) throw new Error('Upload failed');
+                        const data = await response.json();
+                        
+                        setEditFormData({
+                          ...editFormData,
+                          images: [...((editFormData as any)?.images || []), ...data.images]
+                        });
+                        showToast('อัพโหลดรูปสำเร็จ!', 'success');
+                      } catch (error) {
+                        console.error('Error uploading images:', error);
+                        showToast('เกิดข้อผิดพลาดในการอัพโหลด', 'error');
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const isLostPet = 'lostDate' in editFormData;
+                      const endpoint = isLostPet ? 'lost-pets' : 'pets';
+                      const response = await fetch(
+                        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${editingId}`,
+                        {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(editFormData),
+                        }
+                      );
+
+                      if (!response.ok) {
+                        throw new Error('Failed to update post');
+                      }
+
+                      if (isLostPet) {
+                        setLostPetPosts((prev) =>
+                          prev.map((post) =>
+                            post._id === editingId ? { ...post, ...editFormData } as LostPet : post
+                          )
+                        );
+                      } else {
+                        setAdoptionPosts((prev) =>
+                          prev.map((post) =>
+                            post._id === editingId ? { ...post, ...editFormData } as Pet : post
+                          )
+                        );
+                      }
+
+                      setEditingId(null);
+                      setEditFormData({});
+                      showToast('อัปเดตโพสต์สำเร็จ!', 'success');
+                    } catch (error) {
+                      console.error('Error updating post:', error);
+                      showToast('เกิดข้อผิดพลาดในการอัปเดต', 'error');
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition-colors"
+                >
+                  บันทึก
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingId(null);
+                    setEditFormData({});
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors"
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

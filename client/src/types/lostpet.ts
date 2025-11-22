@@ -4,7 +4,7 @@ export interface LostPet {
   species: 'dog' | 'cat' | 'other';
   age?: number;
   gender: 'male' | 'female' | 'unknown';
-  status: 'lost' | 'found';
+  status: 'lost' | 'returned';
   location: string;
   lostDate: string;
   description: string;
@@ -28,7 +28,7 @@ export interface LostPetsState {
   currentPage: number;
   totalPages: number;
   filters: {
-    status: 'all' | 'lost' | 'found';
+    status: 'all' | 'lost' | 'returned';
     species: 'all' | 'dog' | 'cat' | 'other';
     searchQuery: string;
   };

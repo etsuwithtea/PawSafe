@@ -24,7 +24,7 @@ const lostPetSchema = new Schema<ILostPet>(
     },
     status: {
       type: String,
-      enum: ['lost', 'found'],
+      enum: ['lost', 'returned'],
       default: 'lost',
       index: true,
     },

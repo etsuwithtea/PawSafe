@@ -5,7 +5,7 @@ export interface Pet {
   breed: string;
   age?: number;
   gender: 'male' | 'female' | 'unknown';
-  status: 'available' | 'pending' | 'adopted' | 'lost';
+  status: 'available' | 'adopted';
   location: string;
   description: string;
   characteristics: string[];
@@ -29,7 +29,7 @@ export interface PetsState {
   currentPage: number;
   totalPages: number;
   filters: {
-    status: 'all' | 'available' | 'pending' | 'adopted' | 'lost';
+    status: 'all' | 'available' | 'adopted';
     species: 'all' | 'dog' | 'cat' | 'other';
     searchQuery: string;
   };

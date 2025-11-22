@@ -5,6 +5,18 @@ import { saveLostPet, unsaveLostPet } from '../store/lostPetActions';
 import ChatModal from './ChatModal';
 import type { LostPet } from '../types/lostpet';
 
+const formatTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (seconds < 60) return 'เพิ่งเพิ่มเมื่อสักครู่';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} นาทีที่แล้ว`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} ชั่วโมงที่แล้ว`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} วันที่แล้ว`;
+  return `${Math.floor(seconds / 604800)} สัปดาห์ที่แล้ว`;
+};
+
 interface LostPetCardProps {
   lostPet: LostPet;
 }
@@ -62,7 +74,7 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <Clock size={14} className="text-gray-600" />
-            <span>เพิ่งเพิ่มเมื่อเร็ว ๆ</span>
+            <span>{formatTimeAgo(lostPet.createdAt)}</span>
           </div>
           <span className="inline-block px-4 py-2 bg-black text-white rounded-full text-sm font-medium">
             {lostPet.species === 'dog' ? 'สุนัข' : lostPet.species === 'cat' ? 'แมว' : 'อื่นๆ'}

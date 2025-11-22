@@ -28,7 +28,7 @@ router.post('/upload-images', uploadPetImages.array('images', 5), async (req: Re
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { status = 'available', species = 'all', search = '', page = 1, limit = 12 } = req.query;
+    const { status = 'all', species = 'all', search = '', page = 1, limit = 12 } = req.query;
 
     const filter: any = {};
     
