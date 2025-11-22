@@ -33,7 +33,7 @@ export default function Navbar() {
         <div className="hidden md:flex gap-24 items-center flex-1 justify-center" style={{ fontFamily: 'Poppins, Anuphan' }}>
           <Link to="/adoption" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาบ้าน</Link>
           <Link to="/lost-pets" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาสัตว์หาย</Link>
-          <a href="#info" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">เกี่ยวกับเรา</a>
+          <Link to="/about" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">เกี่ยวกับเรา</Link>
         </div>
 
         <button 
