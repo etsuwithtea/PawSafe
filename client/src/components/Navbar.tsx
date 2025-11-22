@@ -1,8 +1,24 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from '../store/store';
+import { logout } from '../store/authSlice';
+import { MessageCircle, Bookmark, Bell } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { unreadCount } = useNotification();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsProfileOpen(false);
+    navigate('/');
+  };
 
   return (
     <nav className="shadow-sm relative z-10" style={{ backgroundColor: '#FFFDFA' }}>
@@ -14,14 +30,12 @@ export default function Navbar() {
           >PawSafe</span>
         </Link>
         
-        {/* Desktop Navigation */}
         <div className="hidden md:flex gap-24 items-center flex-1 justify-center" style={{ fontFamily: 'Poppins, Anuphan' }}>
-          <a href="#home" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาบ้าน</a>
-          <a href="#adoption" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาสัตว์หาย</a>
+          <Link to="/adoption" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาบ้าน</Link>
+          <Link to="/lost-pets" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาสัตว์หาย</Link>
           <a href="#info" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">เกี่ยวกับเรา</a>
         </div>
 
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden flex flex-col gap-1 mr-2"
           onClick={() => setIsOpen(!isOpen)}
@@ -31,37 +45,96 @@ export default function Navbar() {
           <span className={`w-6 h-0.5 bg-white transition-transform ${isOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
         </button>
 
-        {/* Auth Buttons */}
-        <div className="hidden sm:flex gap-2 md:gap-6 items-center pr-2 md:pr-4">
-          <Link 
-            to="/login" 
-            className="px-3 md:px-6 py-2 border border-gray-700 rounded-md text-black bg-white hover:bg-black hover:text-white hover:border-black hover:scale-105 active:scale-95 transition-all duration-200 text-sm md:text-base"
-          >Login</Link>
-          <Link 
-            to="/signup" 
-            className="px-3 md:px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 hover:scale-105 active:scale-95 transition-all duration-200 text-sm md:text-base"
-          >Sign up</Link>
+        <div className="hidden sm:flex gap-2 md:gap-6 items-center pr-2 md:pr-4 ">
+          {user ? (
+            <>
+              <Link 
+                to="/chat" 
+                className="p-2 rounded-full transition-all duration-200 hover:scale-110"
+              >
+                <MessageCircle className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />
+              </Link>
+
+              <Link 
+                to="/favorites" 
+                className="p-2 rounded-full transition-all duration-200 hover:scale-110"
+              >
+                <Bookmark className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />
+              </Link>
+
+              <Link 
+                to="/chat" 
+                className="p-2 rounded-full transition-all duration-200 hover:scale-110 relative"
+              >
+                <Bell className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="p-0 rounded-full transition-all duration-200 hover:scale-110  bg-transparent border-0 focus:outline-none flex items-center justify-center"
+                >
+                  {user.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.username}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-gray-700">
+                        {user.username.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 border rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200" style={{ fontFamily: 'Poppins, Anuphan', backgroundColor: '#FFFDFA' }}>
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-3 text-sm text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 border-b border-gray-200" 
+                    >
+                      โปรไฟล์ของฉัน
+                    </Link>
+                    <Link
+                      to="/my-posts"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-3 text-sm text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 border-b border-gray-200" 
+                    >
+                      โพสต์ของฉัน
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-3 text-sm text-white hover:text-white hover:font-bold hover:scale-110 transition-all duration-200"
+                    >
+                      ล้อกเอาท์
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Link 
+                to="/login" 
+                className="px-3 md:px-6 py-2 border border-gray-700 rounded-md text-black bg-white hover:bg-black hover:text-white hover:border-black hover:scale-105 active:scale-95 transition-all duration-200 text-sm md:text-base"
+              >Login</Link>
+              <Link 
+                to="/signup" 
+                className="px-3 md:px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 hover:scale-105 active:scale-95 transition-all duration-200 text-sm md:text-base"
+              >Sign up</Link>
+            </>
+          )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden border-t border-gray-200 animate-in fade-in slide-in-from-top-2 duration-300" style={{ fontFamily: 'Poppins, Anuphan' }}>
-          <a href="#home" className="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-black hover:translate-x-2 transition-all duration-200">ตามหาบ้าน</a>
-          <a href="#adoption" className="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-black hover:translate-x-2 transition-all duration-200">ตามหาสัตว์หาย</a>
-          <a href="#info" className="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-black hover:translate-x-2 transition-all duration-200">เกี่ยวกับเรา</a>
-          <div className="flex gap-2 px-4 py-3 border-t border-gray-200">
-            <Link 
-              to="/login" 
-              className="flex-1 px-3 py-2 border border-gray-700 rounded-md text-black bg-white hover:bg-black hover:text-white hover:scale-105 active:scale-95 text-sm transition-all duration-200 text-center"
-            >Login</Link>
-            <Link 
-              to="/signup" 
-              className="flex-1 px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800 hover:scale-105 active:scale-95 text-sm transition-all duration-200 text-center"
-            >Sign up</Link>
-          </div>
-        </div>
-      )}
+ 
     </nav>
   );
 }

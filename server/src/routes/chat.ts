@@ -3,8 +3,6 @@ import { Message } from '../models/Message.js';
 
 const router = express.Router();
 
-// Get messages for a conversation (polling endpoint)
-// Query params: conversationId, since (timestamp for polling)
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { conversationId, since } = req.query;
@@ -15,7 +13,6 @@ router.get('/', async (req: Request, res: Response) => {
 
     let query: any = { conversationId };
 
-    // If 'since' is provided, only get messages after that timestamp (for polling)
     if (since && typeof since === 'string') {
       const sinceDate = new Date(parseInt(since));
       query.timestamp = { $gt: sinceDate };
@@ -23,10 +20,28 @@ router.get('/', async (req: Request, res: Response) => {
 
     const messages = await Message.find(query)
       .sort({ timestamp: 1 })
-      .lean();
+      .lean()
+      .exec();
+
+    const processedMessages = messages.map((msg: any) => {
+      let senderName = 'Anonymous';
+      
+      if (msg.senderName) {
+        if (typeof msg.senderName === 'string') {
+          senderName = msg.senderName;
+        } else if (typeof msg.senderName === 'object' && msg.senderName._id) {
+          senderName = msg.senderName._id;
+        }
+      }
+      
+      return {
+        ...msg,
+        senderName,
+      };
+    });
 
     res.json({
-      messages,
+      messages: processedMessages,
       timestamp: Date.now(),
     });
   } catch (error) {
@@ -35,7 +50,6 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Send a message
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { conversationId, senderId, senderName, text } = req.body;
@@ -49,7 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
     const message = new Message({
       conversationId,
       senderId,
-      senderName: senderName || 'Anonymous',
+      senderName: senderName && typeof senderName === 'string' ? senderName : 'Anonymous',
       text,
       timestamp: new Date(),
     });
@@ -66,7 +80,6 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get all conversations (for listing)
 router.get('/conversations', async (req: Request, res: Response) => {
   try {
     const conversations = await Message.distinct('conversationId');

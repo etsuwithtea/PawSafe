@@ -20,7 +20,6 @@ const chatSlice = createSlice({
       state.lastPollingTime = 0;
     },
     addMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-      // Add new messages while avoiding duplicates
       const existingIds = new Set(state.messages.map((m) => m._id));
       const newMessages = action.payload.filter((m) => !existingIds.has(m._id));
       state.messages.push(...newMessages);

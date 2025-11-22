@@ -15,6 +15,7 @@ const messageSchema = new Schema<IMessage>(
     senderName: {
       type: String,
       required: true,
+      default: 'Anonymous',
     },
     text: {
       type: String,

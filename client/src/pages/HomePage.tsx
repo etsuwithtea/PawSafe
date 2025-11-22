@@ -1,5 +1,3 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
 import heroImage from '../assets/images/home/herosection_pic1.png';
 import adoptionImage from '../assets/images/home/herosection_pic2.png';
@@ -15,12 +13,7 @@ import foundSectionImage3 from '../assets/images/home/foundsection_pic3.png';
 export default function HomePage() {
   return (
     <div style={{ backgroundColor: '#FFFDFA' }}>
-
-      <Navbar />
-
-      {/* Hero Section */}
       <section style={{ backgroundColor: '#FFFDFA' }} className="relative overflow-visible pt-16 pb-20">
-        {/* Text Content */}
         <div className="flex flex-col items-center justify-center mb-0 mt-15 z-5 gap-4">
           <h1 
             className="text-3xl md:text-5xl font-bold text-center mb-2" 
@@ -36,14 +29,12 @@ export default function HomePage() {
           >เริ่มหากันเลย</button>
         </div>
 
-        {/* Images Section */}
         <div className="relative h-full sm:h-full overflow-visible">
           <img 
             src={heroImage} 
             alt="Hero Section" 
             className="w-full h-full object-contain hover:scale-105 transition-transform duration-500 cursor-pointer"/>
           
-          {/* Pic 2 positioned floating on top */}
           <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 top-1/2 w-7/12 sm:w-1/2 md:w-3/5 max-w-6xl z-10 overflow-hidden rounded-lg drop-shadow-2xl">
             <img 
               src={adoptionImage} 
@@ -53,15 +44,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* White Section Overlapping */}
         <div className="py-14 sm:py-10 md:py-17 absolute transform -bottom-1 sm:-bottom-2 md:bottom-15 z-15 w-full" style={{ backgroundColor: '#FFFDFA' }}></div>
       </section>
 
-      {/* Map Section */}
       <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Image */}
             <div className="flex justify-center overflow-hidden rounded-lg">
               <img 
                 src={mapSectionImage} 
@@ -70,7 +58,6 @@ export default function HomePage() {
               />
             </div>
             
-            {/* Text Content */}
             <div className="flex flex-col justify-center">
               <h2 
                 className="text-2xl md:text-5xl font-bold mb-4"
@@ -88,10 +75,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Adoption Section */}
       <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8 relative">
         <div className="max-w-6xl mx-auto relative">
-          {/* Background Image - Right Side */}
           <div className="absolute right-0 translate-x-48 top-1/2 transform -translate-y-1/2 z-0 hidden md:flex justify-center w-1/2">
             <img 
               src={adoptSectionBgImage} 
@@ -101,7 +86,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-            {/* Image */}
             <div className="flex justify-center order-2 md:order-1 overflow-hidden rounded-lg">
               <img 
                 src={adoptSectionImage} 
@@ -110,7 +94,6 @@ export default function HomePage() {
               />
             </div>
             
-            {/* Text Content */}
             <div className="flex flex-col justify-center order-1 md:order-2">
               <h2 
                 className="text-2xl md:text-3xl font-bold mb-6"
@@ -125,10 +108,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section - Adoption vs Lost & Found */}
       <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          {/* Section Title */}
           <div className="text-center mb-16">
             <h2 
               className="text-2xl md:text-5xl font-bold"
@@ -136,9 +117,7 @@ export default function HomePage() {
             >มอบบ้านถาวร ติดตามเพื่อนรักที่หลัดหลง</h2>
           </div>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Adoption Column */}
             <div className="flex flex-col items-center text-center hover:bg-gray-50 hover:rounded-lg hover:p-6 transition-all duration-300 cursor-pointer">
               <h3 
                 className="text-xl md:text-3xl font-bold mb-8"
@@ -156,7 +135,6 @@ export default function HomePage() {
               >ประกาศรับเลี้ยง ระบุ พิกัดที่ตั้งของน้องๆ และข้อมูลการติดต่อผู้ดูแลเพื่อให้ผู้สนใจสามารถเข้าเยี่ยมชม <br />และเริ่มต้นขั้นตอนการรับเลี้ยงได้อย่างง่ายดาย</p>
             </div>
 
-            {/* Lost & Found Column */}
             <div className="flex flex-col items-center text-center hover:bg-gray-50 hover:rounded-lg hover:p-6 transition-all duration-300 cursor-pointer">
               <h3 
                 className="text-xl md:text-3xl font-bold mb-8"
@@ -176,10 +154,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Found Section - Stats */}
-      <section style={{ backgroundColor: '#FFB835' }} className="py-32 px-4 md:px-8">
+      <section style={{ backgroundColor: '#FFB835' }} className="py-30 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          {/* Section Title */}
           <div className="text-center mb-16">
             <h2 
               className="text-2xl md:text-5xl font-bold text-white"
@@ -187,9 +163,7 @@ export default function HomePage() {
             >เพื่อนสี่ขาที่พ้นจากภาวะจรจัด และมีบ้านที่ปลอดภัย</h2>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {/* Dogs */}
             <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
               <img 
                 src={foundSectionImage1} 
@@ -201,7 +175,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Cats */}
             <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
               <img 
                 src={foundSectionImage2} 
@@ -213,7 +186,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Other Animals */}
             <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
               <img 
                 src={foundSectionImage3} 
@@ -228,7 +200,6 @@ export default function HomePage() {
         </div>
       </section>
       <BackToTop />
-      <Footer />
     </div>
   );
 }

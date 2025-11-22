@@ -28,7 +28,7 @@ export default function BackToTop() {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 p-3 md:p-4 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all z-50 border-2"
+          className="fixed bottom-6 right-6 p-3 md:p-4 bg-black text-white rounded-full shadow-lg transition-all z-50 border-2 hover:scale-110 active:scale-95"
           style={{ fontFamily: 'Poppins, Anuphan', borderColor: '#FFFDFA' }}
           title="Back to top"
         >

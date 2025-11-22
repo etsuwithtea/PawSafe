@@ -13,6 +13,9 @@ export const loginUser = (email: string, password: string) => async (dispatch: A
     });
 
     dispatch(setUser(response.data.user));
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Login failed';
@@ -39,6 +42,9 @@ export const signupUser = (
     });
 
     dispatch(setUser(response.data.user));
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response.data;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Signup failed';

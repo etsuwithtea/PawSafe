@@ -9,7 +9,6 @@ import {
 
 const API_URL = 'http://localhost:5000/api/chat';
 
-// Send a message
 export const sendMessage = (
   conversationId: string,
   senderId: string,
@@ -38,7 +37,6 @@ export const sendMessage = (
   }
 };
 
-// Poll for new messages (1 second interval)
 export const pollMessages =
   (conversationId: string) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -57,7 +55,6 @@ export const pollMessages =
         dispatch(addMessages(response.data.messages));
       }
 
-      // Update the last polling time
       dispatch(setLastPollingTime(response.data.timestamp));
       dispatch(setError(null));
     } catch (error) {
@@ -68,20 +65,16 @@ export const pollMessages =
     }
   };
 
-// Start polling for messages with 1-second interval
 export const startPolling =
   (conversationId: string) => (dispatch: AppDispatch) => {
     dispatch(setPolling(true));
 
-    // Initial fetch
     dispatch(pollMessages(conversationId) as any);
 
-    // Set up interval for polling every 1 second
     const intervalId = setInterval(() => {
       dispatch(pollMessages(conversationId) as any);
-    }, 1000); // 1 second polling interval
+    }, 1000);
 
-    // Return a function to stop polling
     return () => {
       clearInterval(intervalId);
       dispatch(setPolling(false));

@@ -1,91 +1,193 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import type { RootState } from '../store/store';
-import {
-  setCurrentConversation,
-  clearMessages,
-} from '../store/chatSlice';
-import { sendMessage, startPolling } from '../store/chatActions';
+import { Send, Search } from 'lucide-react';
+
+interface ChatMessage {
+  _id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+}
+
+interface Conversation {
+  conversationId: string;
+  lastMessage: ChatMessage;
+  unreadCount: number;
+  otherUserName?: string;
+  otherUserId: string;
+  otherUserAvatar?: string;
+}
 
 export default function ChatPage() {
-  const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
-  const chat = useSelector((state: RootState) => state.chat);
   const [messageText, setMessageText] = useState('');
-  const [conversationId, setConversationIdInput] = useState('general');
-  const [isConversationSet, setIsConversationSet] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollingStopRef = useRef<(() => void) | null>(null);
-
-  // Scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [chat.messages]);
+    const fetchConversations = async () => {
+      if (!auth.user) return;
 
-  // Handle starting a new conversation
-  const handleStartConversation = () => {
-    if (!conversationId.trim()) {
-      alert('Please enter a conversation ID');
-      return;
+      setIsLoadingConversations(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/conversations`
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch conversations');
+
+        const data = await response.json();
+        
+        const userConversations: Conversation[] = [];
+        
+        for (const convId of data.conversations) {
+          if (convId.includes(auth.user?._id || '')) {
+            const otherUserId = convId.split('-')[0] === auth.user?._id ? convId.split('-')[1] : convId.split('-')[0];
+            
+            try {
+              const userResponse = await fetch(
+                `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/users/${otherUserId}`
+              );
+              let otherUserName = otherUserId;
+              let otherUserAvatar = '';
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                const user = userData.user || userData;
+                otherUserName = user?.username || otherUserId;
+                otherUserAvatar = user?.avatar || '';
+              }
+              
+              userConversations.push({
+                conversationId: convId,
+                lastMessage: null as any,
+                unreadCount: 0,
+                otherUserName,
+                otherUserId,
+                otherUserAvatar,
+              });
+            } catch (error) {
+              console.error('Error fetching user:', otherUserId, error);
+              userConversations.push({
+                conversationId: convId,
+                lastMessage: null as any,
+                unreadCount: 0,
+                otherUserName: otherUserId,
+                otherUserId,
+              });
+            }
+          }
+        }
+
+        setConversations(userConversations);
+
+        if (userConversations.length > 0 && !selectedConversation) {
+          setSelectedConversation(userConversations[0].conversationId);
+        }
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+      } finally {
+        setIsLoadingConversations(false);
+      }
+    };
+
+    fetchConversations();
+  }, [auth.user]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedConversation) return;
+
+      setIsLoadingMessages(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat?conversationId=${selectedConversation}`
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch messages');
+
+        const data = await response.json();
+        setMessages(data.messages || []);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+
+    fetchMessages();
+
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
 
-    dispatch(setCurrentConversation(conversationId));
-    dispatch(clearMessages() as any);
+    pollingIntervalRef.current = setInterval(fetchMessages, 5000);
 
-    // Stop previous polling if any
-    if (pollingStopRef.current) {
-      pollingStopRef.current();
-    }
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [selectedConversation]);
 
-    // Start polling for the new conversation
-    const stopPolling = dispatch(
-      startPolling(conversationId) as any
-    ) as () => void;
-    pollingStopRef.current = stopPolling;
-    setIsConversationSet(true);
-  };
-
-  // Handle sending a message
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !auth.user) {
+    if (!messageText.trim() || !auth.user || !selectedConversation) {
       return;
     }
 
     try {
-      await dispatch(
-        sendMessage(
-          chat.currentConversationId || conversationId,
-          auth.user._id || 'anonymous',
-          auth.user.username || 'Anonymous',
-          messageText
-        ) as any
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            conversationId: selectedConversation,
+            senderId: auth.user._id,
+            senderName: auth.user.username,
+            text: messageText,
+          }),
+        }
       );
+
+      if (!response.ok) throw new Error('Failed to send message');
+
       setMessageText('');
+
+      const messagesResponse = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat?conversationId=${selectedConversation}`
+      );
+
+      if (messagesResponse.ok) {
+        const data = await messagesResponse.json();
+        setMessages(data.messages || []);
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     }
   };
 
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingStopRef.current) {
-        pollingStopRef.current();
-      }
-    };
-  }, []);
-
-  // Handle Enter key to send message
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+
+  const filteredConversations = conversations.filter(conv =>
+    (conv.otherUserName || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (!auth.user) {
     return (
@@ -95,120 +197,249 @@ export default function ChatPage() {
     );
   }
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 shadow-xs">
-        <h1 className="text-2xl font-bold text-gray-800">Chat</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          User: <span className="font-semibold">{auth.user.username}</span>
-        </p>
-      </div>
+  const selectedConvData = conversations.find(c => c.conversationId === selectedConversation);
 
-      {/* Conversation Setup */}
-      {!isConversationSet && (
-        <div className="bg-blue-50 border-b-2 border-blue-200 p-4">
-          <div className="flex gap-2 max-w-md">
+  return (
+    <div className="flex h-screen bg-white">
+      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 shrink-0">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Anuphan' }}>
+            แชท
+          </h1>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              value={conversationId}
-              onChange={(e) => setConversationIdInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleStartConversation();
-              }}
-              placeholder="Enter conversation ID..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ค้นหาการสนทนา..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              style={{ fontFamily: 'Poppins, Anuphan' }}
             />
-            <button
-              onClick={handleStartConversation}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Join
-            </button>
           </div>
-          {chat.currentConversationId && (
-            <p className="text-sm text-green-700 mt-2">
-              ✓ Joined conversation: <strong>{chat.currentConversationId}</strong>
-            </p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {isLoadingConversations ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-gray-500">กำลังโหลด...</p>
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-gray-500 text-center px-4">
+                {searchQuery ? 'ไม่พบการสนทนา' : 'ยังไม่มีการแชท'}
+              </p>
+            </div>
+          ) : (
+            filteredConversations.map((conv) => (
+              <div
+                key={conv.conversationId}
+                onClick={() => setSelectedConversation(conv.conversationId)}
+                className={`px-2 py-3 mx-2 rounded-lg cursor-pointer transition-all flex items-center gap-3 ${
+                  selectedConversation === conv.conversationId
+                    ? 'bg-blue-100'
+                    : 'hover:bg-gray-100'
+                }`}
+                style={{ fontFamily: 'Poppins, Anuphan' }}
+              >
+                <div className="relative shrink-0">
+                  <img
+                    src={conv.otherUserAvatar || 'https://via.placeholder.com/50?text=User'}
+                    alt={conv.otherUserName}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">
+                    {conv.otherUserName}
+                  </p>
+                  <p className="text-xs text-gray-600 truncate">
+                    {conv.lastMessage?.text || 'ไม่มีข้อความ'}
+                  </p>
+                </div>
+
+                {conv.unreadCount > 0 && (
+                  <div className="shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <p className="text-xs text-white font-bold">{conv.unreadCount}</p>
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
-      )}
-
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {chat.messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-400 text-center">
-              {chat.currentConversationId
-                ? 'No messages yet. Start the conversation!'
-                : 'Join a conversation to start chatting.'}
-            </p>
-          </div>
-        ) : (
-          chat.messages.map((message) => (
-            <div
-              key={message._id}
-              className={`flex ${
-                message.senderId === auth.user?._id ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  message.senderId === auth.user?._id
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-gray-300 text-gray-900 rounded-bl-none'
-                }`}
-              >
-                <p className="text-sm font-semibold">
-                  {message.senderName}
-                </p>
-                <p className="text-sm">{message.text}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    message.senderId === auth.user?._id
-                      ? 'text-blue-100'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {new Date(message.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Error message */}
-      {chat.error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 m-4 rounded-sm">
-          {chat.error}
-        </div>
-      )}
+      <div className="hidden md:flex flex-1 flex-col bg-white">
+        {selectedConvData ? (
+          <>
+            <div className="h-16 px-6 border-b border-gray-200 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                <img
+                  src={selectedConvData.otherUserAvatar || 'https://via.placeholder.com/40?text=User'}
+                  alt="User"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Anuphan' }}>
+                    {selectedConvData.otherUserName || 'ผู้ติดต่อ'}
+                  </h2>
+                  <p className="text-xs text-gray-500">ออนไลน์</p>
+                </div>
+              </div>
 
-      {/* Input Area */}
-      {isConversationSet && (
-        <div className="bg-white border-t border-gray-200 p-4">
-          <div className="flex gap-2">
-            <textarea
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message... (Shift+Enter for new line)"
-              rows={2}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-none text-gray-900 placeholder-gray-500"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!messageText.trim()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-            >
-              Send
-            </button>
+
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+              {isLoadingMessages ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm text-gray-500">กำลังโหลด...</p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <img
+                    src={selectedConvData.otherUserAvatar || 'https://via.placeholder.com/80?text=User'}
+                    alt="User"
+                    className="w-16 h-16 rounded-full object-cover mb-4"
+                  />
+                  <p className="text-sm font-semibold text-gray-900 mb-1" style={{ fontFamily: 'Anuphan' }}>
+                    {selectedConvData.otherUserName || 'ผู้ติดต่อ'}
+                  </p>
+                  <p className="text-xs text-gray-500">เริ่มการสนทนา</p>
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const isOwn = message.senderId === auth.user?._id;
+                  return (
+                    <div
+                      key={message._id}
+                      className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs px-4 py-2 rounded-2xl ${
+                          isOwn
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-300 text-gray-900'
+                        }`}
+                        style={{ fontFamily: 'Poppins, Anuphan' }}
+                      >
+                        <p className="text-sm wrap-break-word">{message.text}</p>
+                      </div>
+                      <p className={`text-xs text-gray-500 mt-1 ${isOwn ? 'text-right' : 'text-left'}`}>
+                        {new Date(message.timestamp).toLocaleTimeString('th-TH', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="h-20 px-6 py-4 bg-white border-t border-gray-200 flex items-center gap-3 shrink-0">
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyPress={handleKeyDown}
+                placeholder="Aa"
+                className="flex-1 px-4 py-2 bg-gray-100 text-sm rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                style={{ fontFamily: 'Poppins, Anuphan' }}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!messageText.trim()}
+                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-center">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send className="text-gray-400" size={40} />
+              </div>
+              <p className="text-lg font-semibold text-gray-900 mb-1" style={{ fontFamily: 'Anuphan' }}>
+                เลือกการแชทเพื่อเริ่มข้อความ
+              </p>
+              <p className="text-sm text-gray-500">
+                เลือกจากรายการแชทด้านซ้าย
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            🔄 Polling every 1 second | Conversation: {chat.currentConversationId}
-          </p>
+        )}
+      </div>
+
+      {selectedConversation && (
+        <div className="md:hidden absolute inset-0 bg-white flex flex-col z-50">
+          {selectedConvData && (
+            <>
+              <div className="h-16 px-4 border-b border-gray-200 flex items-center justify-between bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedConversation(null)}
+                    className="text-blue-500 font-semibold text-sm"
+                  >
+                    ← กลับ
+                  </button>
+                </div>
+                <h2 className="font-bold text-gray-900" style={{ fontFamily: 'Anuphan' }}>
+                  {selectedConvData.otherUserName || 'ผู้ติดต่อ'}
+                </h2>
+                <div className="w-8" />
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                {messages.map((message) => {
+                  const isOwn = message.senderId === auth.user?._id;
+                  return (
+                    <div
+                      key={message._id}
+                      className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs px-4 py-2 rounded-2xl ${
+                          isOwn
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-300 text-gray-900'
+                        }`}
+                        style={{ fontFamily: 'Poppins, Anuphan' }}
+                      >
+                        <p className="text-sm wrap-break-word">{message.text}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="h-16 px-4 py-3 bg-white border-t border-gray-200 flex items-center gap-2 shrink-0">
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyPress={handleKeyDown}
+                  placeholder="Aa"
+                  className="flex-1 px-4 py-2 bg-gray-100 text-sm rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ fontFamily: 'Poppins, Anuphan' }}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageText.trim()}
+                  className="p-2 rounded-full bg-blue-500 text-white disabled:opacity-50"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
