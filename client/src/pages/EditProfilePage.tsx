@@ -18,6 +18,12 @@ export default function EditProfilePage() {
     phone: '',
     address: '',
   });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,6 +47,15 @@ export default function EditProfilePage() {
     setError(null);
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -55,17 +70,37 @@ export default function EditProfilePage() {
         throw new Error('กรุณากรอกอีเมล');
       }
 
+      // Validate password change if user entered new password
+      if (showPasswordSection && passwordData.newPassword) {
+        if (!passwordData.newPassword.trim()) {
+          throw new Error('กรุณากรอกรหัสผ่านใหม่');
+        }
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+          throw new Error('รหัสผ่านใหม่ไม่ตรงกัน');
+        }
+        if (passwordData.newPassword.length < 6) {
+          throw new Error('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+        }
+      }
+
+      const requestBody: any = {
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      };
+
+      // Add password fields if changing password
+      if (showPasswordSection && passwordData.newPassword) {
+        requestBody.newPassword = passwordData.newPassword;
+      }
+
       const response = await fetch(`/api/users/${user?._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -76,6 +111,14 @@ export default function EditProfilePage() {
       const data = await response.json();
       
       dispatch(setUser(data.user || data));
+      
+      // Reset password fields on success
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setShowPasswordSection(false);
       
       setSuccess(true);
       setTimeout(() => {
@@ -182,6 +225,52 @@ export default function EditProfilePage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                   style={{ fontFamily: 'Poppins, Anuphan' }}
                 />
+              </div>
+
+              {/* Password Change Section */}
+              <div className="border-t pt-6 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordSection(!showPasswordSection)}
+                  className="w-full text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition" 
+                  style={{ fontFamily: 'Anuphan', backgroundColor: '#000000' }}
+                >
+                  {showPasswordSection ? '▼ ซ่อนการเปลี่ยนรหัสผ่าน' : '▶ เปลี่ยนรหัสผ่าน'}
+                </button>
+
+                {showPasswordSection && (
+                  <div className="mt-6 space-y-4">
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>
+                        รหัสผ่านใหม่
+                      </label>
+                      <input
+                        type="password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="กรอกรหัสผ่านใหม่"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        style={{ fontFamily: 'Poppins, Anuphan' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>
+                        ยืนยันรหัสผ่านใหม่
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="ยืนยันรหัสผ่านใหม่"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        style={{ fontFamily: 'Poppins, Anuphan' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-4">

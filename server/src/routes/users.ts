@@ -72,12 +72,18 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { username, email, phone, address, role, status } = req.body;
+    const { username, email, phone, address, role, status, currentPassword, newPassword } = req.body;
 
     const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
+    }
+
+    // If changing password, hash and update it
+    if (newPassword) {
+      // Hash and update password
+      user.password = await bcrypt.hash(newPassword, 10);
     }
 
     if (username && username !== user.username) {
