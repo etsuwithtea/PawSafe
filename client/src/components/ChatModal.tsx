@@ -2,6 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Send } from 'lucide-react';
 import { useAppSelector } from '../store/store';
 import type { Pet } from '../types/pet';
+import { io, Socket } from 'socket.io-client';
+
+interface ChatMessage {
+  _id: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+}
 
 interface ChatModalProps {
   pet: Pet;
@@ -11,10 +20,56 @@ interface ChatModalProps {
 
 export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
   const { user } = useAppSelector((state) => state.auth);
-  const [messages, setMessages] = useState<Array<{ id: string; senderId: string; senderName: string; text: string; timestamp: string }>>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    if (!isOpen || !user) return;
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const socketUrl = apiUrl.replace('/api', '');
+
+    if (!socketRef.current) {
+      socketRef.current = io(socketUrl, {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,
+      });
+
+      socketRef.current.on('connect', () => {
+        console.log('Socket connected in ChatModal:', socketRef.current?.id);
+        if (user) {
+          socketRef.current?.emit('user_join', user._id);
+        }
+      });
+
+      socketRef.current.on('receive_message', (message: ChatMessage) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+
+      socketRef.current.on('typing_indicator', (data: { senderName?: string; isTyping: boolean }) => {
+        if (data.isTyping && data.senderName) {
+          setTypingUser(data.senderName);
+          setIsTyping(true);
+        } else {
+          setIsTyping(false);
+          setTypingUser('');
+        }
+      });
+    }
+
+    return () => {
+      // Don't disconnect on unmount - keep connection alive
+    };
+  }, [isOpen, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,13 +77,24 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       fetchMessages();
+      const conversationId = `${user._id}-${pet.contactUserId}`;
+      if (socketRef.current) {
+        socketRef.current.emit('join_conversation', conversationId);
+      }
     }
-  }, [isOpen, pet._id]);
+
+    return () => {
+      if (isOpen && user && socketRef.current) {
+        const conversationId = `${user._id}-${pet.contactUserId}`;
+        socketRef.current.emit('leave_conversation', conversationId);
+      }
+    };
+  }, [isOpen, pet._id, user]);
 
   const fetchMessages = async () => {
     try {
@@ -43,16 +109,7 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
       }
 
       const data = await response.json();
-      
-      const formattedMessages = data.messages.map((msg: any) => ({
-        id: msg._id,
-        senderId: msg.senderId,
-        senderName: msg.senderName,
-        text: msg.text,
-        timestamp: msg.timestamp,
-      }));
-
-      setMessages(formattedMessages);
+      setMessages(data.messages || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -61,52 +118,66 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !user) return;
 
-    const newMessage = {
-      id: Date.now().toString(),
-      senderId: user._id,
-      senderName: user.username,
-      text: messageInput,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setMessageInput('');
-    setIsLoading(true);
+    // Stop typing indicator
+    if (socketRef.current) {
+      const conversationId = `${user._id}-${pet.contactUserId}`;
+      socketRef.current.emit('user_stop_typing', conversationId);
+    }
 
     try {
       const conversationId = `${user._id}-${pet.contactUserId}`;
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            conversationId,
-            senderId: user._id,
-            senderName: user.username,
-            text: messageInput,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      // Send message via Socket.IO
+      if (socketRef.current) {
+        socketRef.current.emit('send_message', {
+          conversationId,
+          senderId: user._id,
+          senderName: user.username,
+          text: messageInput,
+        });
       }
+
+      setMessageInput('');
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(messages);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTyping = () => {
+    if (!socketRef.current || !user) return;
+
+    const conversationId = `${user._id}-${pet.contactUserId}`;
+    socketRef.current.emit('user_typing', {
+      conversationId,
+      senderName: user.username,
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current) {
+        socketRef.current.emit('user_stop_typing', conversationId);
+      }
+    }, 3000);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-transparent bg-opacity-20 z-40 flex items-end justify-end p-4 pointer-events-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-20 z-40 flex items-end justify-end p-4 pointer-events-auto">
       <div className="bg-white rounded-2xl w-full md:w-[500px] h-[75vh] md:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-t-2xl shrink-0">
           <div className="flex items-center gap-3">
@@ -138,7 +209,7 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 bg-transparent space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
               <p style={{ fontFamily: 'Poppins, Anuphan' }}>เริ่มการสนทนา</p>
@@ -146,7 +217,7 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
           ) : (
             messages.map((message) => (
               <div
-                key={message.id}
+                key={message._id}
                 className={`flex ${
                   message.senderId === user?._id ? 'justify-end' : 'justify-start'
                 }`}
@@ -154,7 +225,7 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
                 <div
                   className={`max-w-xs px-4 py-2 rounded-2xl ${
                     message.senderId === user?._id
-                      ? 'bg-yellow-400 text-gray-900'
+                      ? 'bg-blue-500 text-white'
                       : 'bg-gray-300 text-gray-900'
                   }`}
                   style={{ fontFamily: 'Poppins, Anuphan' }}
@@ -170,6 +241,18 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
               </div>
             ))
           )}
+
+          {isTyping && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-gray-300 px-3 py-2 rounded-2xl">
+                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+              <p className="text-xs text-gray-500">{typingUser} กำลังพิมพ์...</p>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -177,22 +260,20 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
           <input
             type="text"
             value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
+            onChange={(e) => {
+              setMessageInput(e.target.value);
+              handleTyping();
             }}
+            onKeyPress={handleKeyDown}
             placeholder="พิมพ์ข้อความ..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             style={{ fontFamily: 'Poppins, Anuphan' }}
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !messageInput.trim()}
-            className="p-2 rounded-full bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50"
           >
             <Send size={20} />
           </button>

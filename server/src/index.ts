@@ -3,12 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import { connectDB } from './config/database.js';
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import chatRoutes from './routes/chat.js';
 import petsRoutes from './routes/pets.js';
 import lostPetsRoutes from './routes/lostPets.js';
+import { setupSocketHandlers } from './socket/socketHandlers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,6 +48,19 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
-app.listen(PORT, () => {
+// Create HTTP server and Socket.IO instance
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+  },
+});
+
+// Setup Socket.IO handlers
+setupSocketHandlers(io);
+
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`WebSocket server listening on ws://localhost:${PORT}`);
 });

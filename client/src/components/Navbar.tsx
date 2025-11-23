@@ -12,12 +12,17 @@ export default function Navbar() {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { unreadCount } = useNotification();
+  const { unreadCount, clearUnreadCount } = useNotification();
 
   const handleLogout = () => {
     dispatch(logout());
     setIsProfileOpen(false);
     navigate('/');
+  };
+
+  const handleNotificationClick = () => {
+    clearUnreadCount();
+    navigate('/chat');
   };
 
   return (
@@ -64,6 +69,7 @@ export default function Navbar() {
 
               <Link 
                 to="/chat" 
+                onClick={handleNotificationClick}
                 className="p-2 rounded-full transition-all duration-200 hover:scale-110 relative"
               >
                 <Bell className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />

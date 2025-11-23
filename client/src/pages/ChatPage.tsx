@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store/store';
 import { Send, Search } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
 
 interface ChatMessage {
   _id: string;
@@ -30,9 +31,63 @@ export default function ChatPage() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const socketUrl = apiUrl.replace('/api', '');
+    
+    socketRef.current = io(socketUrl, {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('Socket connected:', socketRef.current?.id);
+      if (auth.user) {
+        socketRef.current?.emit('user_join', auth.user._id);
+      }
+    });
+
+    socketRef.current.on('receive_message', (message: ChatMessage) => {
+      console.log('Message received:', message);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    socketRef.current.on('typing_indicator', (data: { senderName?: string; isTyping: boolean }) => {
+      if (data.isTyping && data.senderName) {
+        setTypingUser(data.senderName);
+        setIsTyping(true);
+      } else {
+        setIsTyping(false);
+        setTypingUser('');
+      }
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Socket disconnected');
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [auth.user]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Fetch conversations on mount
   useEffect(() => {
     const fetchConversations = async () => {
       if (!auth.user) return;
@@ -46,27 +101,27 @@ export default function ChatPage() {
         if (!response.ok) throw new Error('Failed to fetch conversations');
 
         const data = await response.json();
-        
+
         const userConversations: Conversation[] = [];
-        
+
         for (const convId of data.conversations) {
           if (convId.includes(auth.user?._id || '')) {
             const otherUserId = convId.split('-')[0] === auth.user?._id ? convId.split('-')[1] : convId.split('-')[0];
-            
+
             try {
               const userResponse = await fetch(
                 `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/users/${otherUserId}`
               );
               let otherUserName = otherUserId;
               let otherUserAvatar = '';
-              
+
               if (userResponse.ok) {
                 const userData = await userResponse.json();
                 const user = userData.user || userData;
                 otherUserName = user?.username || otherUserId;
                 otherUserAvatar = user?.avatar || '';
               }
-              
+
               userConversations.push({
                 conversationId: convId,
                 lastMessage: null as any,
@@ -103,6 +158,7 @@ export default function ChatPage() {
     fetchConversations();
   }, [auth.user]);
 
+  // Fetch messages and join conversation room
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation) return;
@@ -117,6 +173,11 @@ export default function ChatPage() {
 
         const data = await response.json();
         setMessages(data.messages || []);
+
+        // Join the conversation room via Socket.IO
+        if (socketRef.current) {
+          socketRef.current.emit('join_conversation', selectedConversation);
+        }
       } catch (error) {
         console.error('Error fetching messages:', error);
       } finally {
@@ -126,15 +187,10 @@ export default function ChatPage() {
 
     fetchMessages();
 
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-    }
-
-    pollingIntervalRef.current = setInterval(fetchMessages, 5000);
-
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+      // Leave the conversation room when switching
+      if (selectedConversation && socketRef.current) {
+        socketRef.current.emit('leave_conversation', selectedConversation);
       }
     };
   }, [selectedConversation]);
@@ -144,35 +200,23 @@ export default function ChatPage() {
       return;
     }
 
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            conversationId: selectedConversation,
-            senderId: auth.user._id,
-            senderName: auth.user.username,
-            text: messageText,
-          }),
-        }
-      );
+    // Stop typing indicator
+    if (socketRef.current) {
+      socketRef.current.emit('user_stop_typing', selectedConversation);
+    }
 
-      if (!response.ok) throw new Error('Failed to send message');
+    try {
+      // Send message via Socket.IO
+      if (socketRef.current) {
+        socketRef.current.emit('send_message', {
+          conversationId: selectedConversation,
+          senderId: auth.user._id,
+          senderName: auth.user.username,
+          text: messageText,
+        });
+      }
 
       setMessageText('');
-
-      const messagesResponse = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat?conversationId=${selectedConversation}`
-      );
-
-      if (messagesResponse.ok) {
-        const data = await messagesResponse.json();
-        setMessages(data.messages || []);
-      }
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -183,6 +227,27 @@ export default function ChatPage() {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleTyping = () => {
+    if (!socketRef.current || !selectedConversation || !auth.user) return;
+
+    socketRef.current.emit('user_typing', {
+      conversationId: selectedConversation,
+      senderName: auth.user.username,
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketRef.current) {
+        socketRef.current.emit('user_stop_typing', selectedConversation);
+      }
+    }, 3000);
   };
 
   const filteredConversations = conversations.filter(conv =>
@@ -206,7 +271,7 @@ export default function ChatPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Anuphan' }}>
             แชท
           </h1>
-          
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
@@ -249,7 +314,6 @@ export default function ChatPage() {
                     alt={conv.otherUserName}
                     className="w-12 h-12 rounded-full object-cover"
                   />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -289,8 +353,6 @@ export default function ChatPage() {
                   <p className="text-xs text-gray-500">ออนไลน์</p>
                 </div>
               </div>
-
-
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
@@ -338,6 +400,18 @@ export default function ChatPage() {
                   );
                 })
               )}
+
+              {isTyping && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-gray-300 px-3 py-2 rounded-2xl">
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">{typingUser} กำลังพิมพ์...</p>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -345,7 +419,10 @@ export default function ChatPage() {
               <input
                 type="text"
                 value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
+                onChange={(e) => {
+                  setMessageText(e.target.value);
+                  handleTyping();
+                }}
                 onKeyPress={handleKeyDown}
                 placeholder="Aa"
                 className="flex-1 px-4 py-2 bg-gray-100 text-sm rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
@@ -417,6 +494,18 @@ export default function ChatPage() {
                     </div>
                   );
                 })}
+
+                {isTyping && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-gray-300 px-3 py-2 rounded-2xl">
+                      <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                    <p className="text-xs text-gray-500">{typingUser} กำลังพิมพ์...</p>
+                  </div>
+                )}
+
                 <div ref={messagesEndRef} />
               </div>
 
@@ -424,7 +513,10 @@ export default function ChatPage() {
                 <input
                   type="text"
                   value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
+                  onChange={(e) => {
+                    setMessageText(e.target.value);
+                    handleTyping();
+                  }}
                   onKeyPress={handleKeyDown}
                   placeholder="Aa"
                   className="flex-1 px-4 py-2 bg-gray-100 text-sm rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -8,6 +8,7 @@ interface NotificationContextType {
   unreadCount: number;
   setNotification: (notification: Notification | null) => void;
   dismissNotification: () => void;
+  clearUnreadCount: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -107,11 +108,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setNotification(null);
   }, []);
 
+  const handleClearUnreadCount = useCallback(() => {
+    setUnreadCount(0);
+  }, []);
+
   const contextValue: NotificationContextType = {
     notification,
     unreadCount,
     setNotification,
     dismissNotification,
+    clearUnreadCount: handleClearUnreadCount,
   };
 
   return (
