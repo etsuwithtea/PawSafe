@@ -209,12 +209,12 @@ export default function AdoptionPage() {
           </div>
         )}
 
-        {!isLoading && totalPages > 1 && (
+        {!isLoading && (
           <div className="flex items-center justify-center gap-4 mt-12">
             <button
               onClick={() => dispatch(setCurrentPage(currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-orange-400 text-black font-bold rounded-lg hover:bg-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: 'Poppins, Anuphan' }}
             >
               ◀
@@ -233,7 +233,7 @@ export default function AdoptionPage() {
             <button
               onClick={() => dispatch(setCurrentPage(currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-orange-400 text-black font-bold rounded-lg hover:bg-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: 'Poppins, Anuphan' }}
             >
               ▶
