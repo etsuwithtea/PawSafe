@@ -16,6 +16,8 @@ export const fetchLostPets = (
   species: string = 'all',
   search: string = '',
   page: number = 1,
+  province: string = '',
+  district: string = '',
   limit: number = 12
 ) => async (dispatch: AppDispatch) => {
   dispatch(setLoading(true));
@@ -24,6 +26,8 @@ export const fetchLostPets = (
     if (status !== 'all') params.append('status', status);
     if (species !== 'all') params.append('species', species);
     if (search.trim()) params.append('search', search);
+    if (province.trim()) params.append('province', province);
+    if (district.trim()) params.append('district', district);
     params.append('page', String(page));
     params.append('limit', String(limit));
 

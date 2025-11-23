@@ -8,6 +8,8 @@ import {
   setSearchQuery,
   setCurrentPage,
   setSpeciesFilter,
+  setProvinceFilter,
+  setDistrictFilter,
 } from '../store/lostPetSlice';
 import LostPetCard from '../components/LostPetCard';
 
@@ -29,12 +31,19 @@ export default function LostPetsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(
-        fetchLostPets('all', filters.species, filters.searchQuery, currentPage) as any
+        fetchLostPets(
+          'all',
+          filters.species,
+          filters.searchQuery,
+          currentPage,
+          filters.province,
+          filters.district
+        ) as any
       );
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [filters.species, filters.searchQuery, currentPage, dispatch]);
+  }, [filters.species, filters.searchQuery, filters.province, filters.district, currentPage, dispatch]);
 
   const handleSearch = () => {
     dispatch(setSearchQuery(searchInput));
@@ -132,8 +141,8 @@ export default function LostPetsPage() {
                 จังหวัด :
               </span>
               <select
-                value={selectedProvince}
-                onChange={(e) => setSelectedProvince(e.target.value)}
+                value={filters.province}
+                onChange={(e) => dispatch(setProvinceFilter(e.target.value))}
                 className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >
@@ -151,8 +160,8 @@ export default function LostPetsPage() {
                 อำเภอ :
               </span>
               <select
-                value={selectedDistrict}
-                onChange={(e) => setSelectedDistrict(e.target.value)}
+                value={filters.district}
+                onChange={(e) => dispatch(setDistrictFilter(e.target.value))}
                 className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >

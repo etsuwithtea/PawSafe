@@ -32,5 +32,7 @@ export interface LostPetsState {
     status: 'all' | 'lost' | 'returned';
     species: 'all' | 'dog' | 'cat' | 'other';
     searchQuery: string;
+    province: string;
+    district: string;
   };
 }

@@ -8,6 +8,8 @@ import {
   setSearchQuery,
   setCurrentPage,
   setSpeciesFilter,
+  setProvinceFilter,
+  setDistrictFilter,
 } from '../store/petSlice';
 import PetCard from '../components/PetCard';
 
@@ -29,12 +31,19 @@ export default function AdoptionPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(
-        fetchPets(filters.status, filters.species, filters.searchQuery, currentPage) as any
+        fetchPets(
+          filters.status,
+          filters.species,
+          filters.searchQuery,
+          currentPage,
+          filters.province,
+          filters.district
+        ) as any
       );
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [filters.status, filters.species, filters.searchQuery, currentPage, dispatch]);
+  }, [filters.status, filters.species, filters.searchQuery, filters.province, filters.district, currentPage, dispatch]);
 
   const handleSearch = () => {
     dispatch(setSearchQuery(searchInput));
@@ -132,8 +141,8 @@ export default function AdoptionPage() {
                 จังหวัด :
               </span>
               <select
-                value={selectedProvince}
-                onChange={(e) => setSelectedProvince(e.target.value)}
+                value={filters.province}
+                onChange={(e) => dispatch(setProvinceFilter(e.target.value))}
                 className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >
@@ -151,8 +160,8 @@ export default function AdoptionPage() {
                 อำเภอ :
               </span>
               <select
-                value={selectedDistrict}
-                onChange={(e) => setSelectedDistrict(e.target.value)}
+                value={filters.district}
+                onChange={(e) => dispatch(setDistrictFilter(e.target.value))}
                 className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >

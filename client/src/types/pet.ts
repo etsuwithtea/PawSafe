@@ -33,5 +33,7 @@ export interface PetsState {
     status: 'all' | 'available' | 'adopted';
     species: 'all' | 'dog' | 'cat' | 'other';
     searchQuery: string;
+    province: string;
+    district: string;
   };
 }

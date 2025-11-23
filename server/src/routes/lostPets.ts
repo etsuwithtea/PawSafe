@@ -46,7 +46,7 @@ router.post('/upload-images', uploadPetImages.array('images', 5), async (req: Re
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { status = 'all', species = 'all', search = '', page = 1, limit = 12 } = req.query;
+    const { status = 'all', species = 'all', search = '', page = 1, limit = 12, province = '', district = '' } = req.query;
 
     const filter: any = {};
     
@@ -60,6 +60,20 @@ router.get('/', async (req: Request, res: Response) => {
 
     if (search && typeof search === 'string' && search.trim()) {
       filter.$text = { $search: search };
+    }
+
+    // Filter by province and district
+    if (province && typeof province === 'string' && province.trim()) {
+      filter.location = { $regex: province, $options: 'i' };
+    }
+
+    if (district && typeof district === 'string' && district.trim()) {
+      if (filter.location) {
+        // If both province and district are specified, combine them
+        filter.location = { $regex: `${district}.*${province}|${province}.*${district}`, $options: 'i' };
+      } else {
+        filter.location = { $regex: district, $options: 'i' };
+      }
     }
 
     const pageNum = Math.max(1, parseInt(String(page)) || 1);

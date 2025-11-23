@@ -13,6 +13,8 @@ const initialState: LostPetsState = {
     status: 'all',
     species: 'all',
     searchQuery: '',
+    province: '',
+    district: '',
   },
 };
 
@@ -51,6 +53,14 @@ const lostPetSlice = createSlice({
     setCurrentPage: (state, action: PayloadAction<number>) => {
       state.currentPage = action.payload;
     },
+    setProvinceFilter: (state, action: PayloadAction<string>) => {
+      state.filters.province = action.payload;
+      state.currentPage = 1;
+    },
+    setDistrictFilter: (state, action: PayloadAction<string>) => {
+      state.filters.district = action.payload;
+      state.currentPage = 1;
+    },
     addLostPetToSaved: (state, action: PayloadAction<string>) => {
       if (state.selectedLostPet) {
         state.selectedLostPet.savedBy.push(action.payload);
@@ -73,6 +83,8 @@ export const {
   setSpeciesFilter,
   setSearchQuery,
   setCurrentPage,
+  setProvinceFilter,
+  setDistrictFilter,
   addLostPetToSaved,
   removeLostPetFromSaved,
 } = lostPetSlice.actions;

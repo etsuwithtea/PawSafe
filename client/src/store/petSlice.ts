@@ -13,6 +13,8 @@ const initialState: PetsState = {
     status: 'all',
     species: 'all',
     searchQuery: '',
+    province: '',
+    district: '',
   },
 };
 
@@ -51,6 +53,14 @@ const petSlice = createSlice({
     setCurrentPage: (state, action: PayloadAction<number>) => {
       state.currentPage = action.payload;
     },
+    setProvinceFilter: (state, action: PayloadAction<string>) => {
+      state.filters.province = action.payload;
+      state.currentPage = 1;
+    },
+    setDistrictFilter: (state, action: PayloadAction<string>) => {
+      state.filters.district = action.payload;
+      state.currentPage = 1;
+    },
     addPetToSaved: (state, action: PayloadAction<string>) => {
       const pet = state.pets.find(p => p._id === action.payload);
       if (pet && state.selectedPet?._id === action.payload) {
@@ -78,6 +88,8 @@ export const {
   setSpeciesFilter,
   setSearchQuery,
   setCurrentPage,
+  setProvinceFilter,
+  setDistrictFilter,
   addPetToSaved,
   removePetFromSaved,
 } = petSlice.actions;
