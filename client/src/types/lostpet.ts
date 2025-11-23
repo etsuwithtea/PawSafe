@@ -6,6 +6,7 @@ export interface LostPet {
   gender: 'male' | 'female' | 'unknown';
   status: 'lost' | 'returned';
   location: string;
+  locationDetails: string;
   lostDate: string;
   description: string;
   characteristics: string[];

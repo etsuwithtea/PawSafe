@@ -59,6 +59,8 @@ export default function AddPetPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
+    console.log('Form change:', name, value);
+
     if (name === 'province') {
       setFormData((prev) => ({
         ...prev,
@@ -121,7 +123,9 @@ export default function AddPetPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.province || !formData.district || !formData.description) {
+    console.log('Form data before submit:', formData);
+
+    if (!formData.name?.trim() || !formData.province || !formData.district || !formData.description?.trim() || !formData.locationDetails?.trim()) {
       showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
       return;
     }
@@ -153,6 +157,7 @@ export default function AddPetPage() {
         name: formData.name,
         species: formData.species,
         location: `${formData.district}, ${formData.province}`,
+        locationDetails: formData.locationDetails,
         description: formData.description,
         characteristics: [],
         images: uploadedImagePaths,

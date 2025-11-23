@@ -7,6 +7,7 @@ export interface IPet extends Document {
   gender: 'male' | 'female' | 'unknown';
   status: 'available' | 'pending' | 'adopted';
   location: string;
+  locationDetails: string;
   description: string;
   characteristics: string[];
   images: string[];

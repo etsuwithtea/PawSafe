@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MapPin, User, Clock, Bookmark } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, User, Clock, Bookmark, Info } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { saveLostPet, unsaveLostPet } from '../store/lostPetActions';
 import ChatModal from './ChatModal';
@@ -22,6 +23,7 @@ interface LostPetCardProps {
 }
 
 export default function LostPetCard({ lostPet }: LostPetCardProps) {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,6 +54,10 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
 
   const handleContact = () => {
     setIsChatOpen(true);
+  };
+
+  const handleViewDetail = () => {
+    navigate(`/lost-pets/${lostPet._id}`);
   };
 
   return (
@@ -88,7 +94,7 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
         <div className="flex items-center gap-3 text-xs text-gray-700 mb-2">
           <span className="flex items-center gap-1">
             <MapPin size={16} className="text-gray-700" />
-            <span>{lostPet.location}</span>
+            <span>{lostPet.location} {lostPet.locationDetails && `- ${lostPet.locationDetails}`}</span>
           </span>
           <span className="flex items-center gap-1">
             <User size={16} className="text-gray-700" />
@@ -103,6 +109,16 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
         </p>
 
         <div className="flex gap-2 mt-auto">
+          <button 
+            onClick={handleViewDetail}
+            title="ดูรายละเอียด"
+            className="p-2 rounded-full transition-all duration-200 hover:scale-110 disabled:opacity-50 shrink-0 bg-white hover:bg-black"
+          >
+            <Info 
+              size={24}
+              className="text-black hover:text-white transition-colors"
+            />
+          </button>
           <button 
             onClick={handleSave}
             disabled={isSaving}

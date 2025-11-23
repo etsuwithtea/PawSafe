@@ -37,16 +37,19 @@ export const useToast = () => {
 interface ToastProps {
   toasts: ToastMessage[];
   onRemove: (id: string) => void;
+  variant?: 'default' | 'dark';
 }
 
-export default function Toast({ toasts, onRemove }: ToastProps) {
+export default function Toast({ toasts, onRemove, variant = 'default' }: ToastProps) {
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
       {toasts.map((toast) => (
         <div
           key={toast.id}
           className={`px-4 py-3 rounded-lg shadow-lg text-white font-medium animate-in fade-in slide-in-from-right-4 duration-200 ${
-            toast.type === 'success'
+            variant === 'dark'
+              ? 'bg-black'
+              : toast.type === 'success'
               ? 'bg-green-500'
               : toast.type === 'error'
               ? 'bg-red-500'

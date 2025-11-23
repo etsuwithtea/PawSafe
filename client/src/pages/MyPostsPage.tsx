@@ -196,7 +196,7 @@ export default function MyPostsPage() {
 
   return (
     <div className="w-full bg-gray-50 py-8" style={{ marginBottom: `${(40 + Math.ceil(totalPosts / 3) * 60)}px`, fontFamily: 'Poppins, Anuphan' }}>
-      <Toast toasts={toasts} onRemove={removeToast} />
+      <Toast toasts={toasts} onRemove={removeToast} variant="dark" />
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}
@@ -259,15 +259,14 @@ export default function MyPostsPage() {
                     <p className="text-gray-600">ยังไม่มีโพสต์ตามหาบ้าน</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {adoptionPosts.map((pet) => (
-                      <div key={pet._id}>
-                        <PetCard pet={pet} />
-                        <div className="mt-3 space-y-2">
+                      <div key={pet._id} className="relative mb-6">
+                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
                           <select
                             value={pet.status}
                             onChange={(e) => handleStatusChange(pet._id, e.target.value, false)}
-                            className="w-full px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"
+                            className="flex-1 px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg"
                           >
                             <option value="available">กำลังหาบ้าน</option>
                             <option value="adopted">ได้บ้านแล้ว</option>
@@ -277,18 +276,21 @@ export default function MyPostsPage() {
                               setEditingId(pet._id);
                               setEditFormData(pet);
                             }}
-                            className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                            className="px-2 py-2 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-lg"
+                            title="แก้ไขโพสต์"
                           >
                             <Edit2 size={16} />
-                            แก้ไขโพสต์
                           </button>
                           <button
                             onClick={() => handleDeletePost(pet._id, false)}
-                            className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                            className="px-2 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors flex items-center justify-center shadow-lg"
+                            title="ลบโพสต์"
                           >
                             <Trash2 size={16} />
-                            ลบโพสต์
                           </button>
+                        </div>
+                        <div className="h-full">
+                          <PetCard pet={pet} />
                         </div>
                       </div>
                     ))}
@@ -305,15 +307,14 @@ export default function MyPostsPage() {
                     <p className="text-gray-600">ยังไม่มีโพสต์ตามหาสัตว์หาย</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {lostPetPosts.map((lostPet) => (
-                      <div key={lostPet._id}>
-                        <LostPetCard lostPet={lostPet} />
-                        <div className="mt-3 space-y-2">
+                      <div key={lostPet._id} className="relative mb-6">
+                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
                           <select
                             value={lostPet.status}
                             onChange={(e) => handleStatusChange(lostPet._id, e.target.value, true)}
-                            className="w-full px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"
+                            className="flex-1 px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg"
                           >
                             <option value="lost">ยังหาไม่เจอ</option>
                             <option value="returned">กลับบ้านแล้ว</option>
@@ -323,18 +324,21 @@ export default function MyPostsPage() {
                               setEditingId(lostPet._id);
                               setEditFormData(lostPet);
                             }}
-                            className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                            className="px-2 py-2 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-lg"
+                            title="แก้ไขโพสต์"
                           >
                             <Edit2 size={16} />
-                            แก้ไขโพสต์
                           </button>
                           <button
                             onClick={() => handleDeletePost(lostPet._id, true)}
-                            className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                            className="px-2 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors flex items-center justify-center shadow-lg"
+                            title="ลบโพสต์"
                           >
                             <Trash2 size={16} />
-                            ลบโพสต์
                           </button>
+                        </div>
+                        <div className="h-full">
+                          <LostPetCard lostPet={lostPet} />
                         </div>
                       </div>
                     ))}
@@ -377,6 +381,16 @@ export default function MyPostsPage() {
                   value={(editFormData as any)?.location || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">รายละเอียดที่อยู่</label>
+                <input
+                  type="text"
+                  value={(editFormData as any)?.locationDetails || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, locationDetails: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  placeholder="เช่น เลขที่บ้าน ซอย ฯลฯ"
                 />
               </div>
               <div>

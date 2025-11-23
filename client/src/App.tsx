@@ -12,6 +12,8 @@ import FavoritesPage from './pages/FavoritesPage';
 import MyPostsPage from './pages/MyPostsPage';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
+import PetDetailPage from './pages/PetDetailPage';
+import LostPetDetailPage from './pages/LostPetDetailPage';
 import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,7 +33,9 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/adoption" element={<AdoptionPage />} />
+            <Route path="/adoption/:id" element={<PetDetailPage />} />
             <Route path="/lost-pets" element={<LostPetsPage />} />
+            <Route path="/lost-pets/:id" element={<LostPetDetailPage />} />
             <Route path="/add-pet" element={<AddPetPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Route>

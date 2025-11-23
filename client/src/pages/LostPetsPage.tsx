@@ -29,7 +29,7 @@ export default function LostPetsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(
-        fetchLostPets('lost', filters.species, filters.searchQuery, currentPage) as any
+        fetchLostPets('all', filters.species, filters.searchQuery, currentPage) as any
       );
     }, 300);
 
@@ -44,7 +44,7 @@ export default function LostPetsPage() {
     const fetchLostPetsForLocations = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets?status=lost&limit=1000`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets?limit=1000`
         );
         const data = await response.json();
         

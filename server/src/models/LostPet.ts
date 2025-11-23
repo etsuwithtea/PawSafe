@@ -32,6 +32,10 @@ const lostPetSchema = new Schema<ILostPet>(
       type: String,
       required: true,
     },
+    locationDetails: {
+      type: String,
+      default: '',
+    },
     lostDate: {
       type: Date,
       default: new Date(),

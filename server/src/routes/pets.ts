@@ -1,6 +1,24 @@
 import express, { Request, Response } from 'express';
 import { Pet } from '../models/Pet.js';
 import { uploadPetImages } from '../middleware/uploadMiddleware.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const deleteImageFile = (imagePath: string) => {
+  try {
+    const filePath = path.join(__dirname, '../../', imagePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('Image deleted:', filePath);
+    }
+  } catch (error) {
+    console.error('Error deleting image file:', error);
+  }
+};
 
 const router = express.Router();
 
@@ -91,7 +109,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, species, age, gender, location, description, characteristics, images, contactUserId, contactName, contactPhone, contactEmail } = req.body;
+    const { name, species, age, gender, location, locationDetails, description, characteristics, images, contactUserId, contactName, contactPhone, contactEmail } = req.body;
 
     if (!name || !species || !location || !description || !contactUserId || !contactName || !contactPhone || !contactEmail) {
       res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -104,6 +122,7 @@ router.post('/', async (req: Request, res: Response) => {
       age: age || null,
       gender: gender || 'unknown',
       location,
+      locationDetails: locationDetails || '',
       description,
       characteristics: characteristics || [],
       images: images || [],
@@ -129,7 +148,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { name, species, age, gender, location, description, characteristics, images, status } = req.body;
+    const { name, species, age, gender, location, locationDetails, description, characteristics, images, status } = req.body;
 
     const pet = await Pet.findById(req.params.id);
 
@@ -143,6 +162,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (age !== undefined) pet.age = age;
     if (gender !== undefined) pet.gender = gender;
     if (location !== undefined) pet.location = location;
+    if (locationDetails !== undefined) pet.locationDetails = locationDetails;
     if (description !== undefined) pet.description = description;
     if (characteristics !== undefined) pet.characteristics = characteristics;
     if (images !== undefined) pet.images = images;
@@ -168,6 +188,13 @@ router.delete('/:id', async (req: Request, res: Response) => {
     if (!pet) {
       res.status(404).json({ success: false, message: 'Pet not found' });
       return;
+    }
+
+    // Delete all associated images
+    if (pet.images && pet.images.length > 0) {
+      pet.images.forEach((imagePath: string) => {
+        deleteImageFile(imagePath);
+      });
     }
 
     res.status(200).json({

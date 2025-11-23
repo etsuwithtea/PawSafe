@@ -32,6 +32,10 @@ const petSchema = new Schema<IPet>(
       type: String,
       required: true,
     },
+    locationDetails: {
+      type: String,
+      default: '',
+    },
     description: {
       type: String,
       required: true,

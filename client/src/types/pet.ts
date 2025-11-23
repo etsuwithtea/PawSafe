@@ -7,6 +7,7 @@ export interface Pet {
   gender: 'male' | 'female' | 'unknown';
   status: 'available' | 'adopted';
   location: string;
+  locationDetails: string;
   description: string;
   characteristics: string[];
   images: string[];
