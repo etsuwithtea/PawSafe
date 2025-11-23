@@ -58,7 +58,12 @@ export default function ChatPage() {
 
     socketRef.current.on('receive_message', (message: ChatMessage) => {
       console.log('Message received:', message);
-      setMessages((prevMessages) => [...prevMessages, message]);
+      setMessages((prevMessages) => {
+        // Avoid duplicates
+        const exists = prevMessages.some(m => m._id === message._id);
+        if (exists) return prevMessages;
+        return [...prevMessages, message];
+      });
     });
 
     socketRef.current.on('typing_indicator', (data: { senderName?: string; isTyping: boolean }) => {
@@ -205,20 +210,33 @@ export default function ChatPage() {
       socketRef.current.emit('user_stop_typing', selectedConversation);
     }
 
-    try {
-      // Send message via Socket.IO
-      if (socketRef.current) {
-        socketRef.current.emit('send_message', {
-          conversationId: selectedConversation,
-          senderId: auth.user._id,
-          senderName: auth.user.username,
-          text: messageText,
-        });
-      }
+    const messageContent = messageText.trim();
+    setMessageText('');
 
-      setMessageText('');
+    try {
+      // Send message via Socket.IO with callback
+      if (socketRef.current) {
+        socketRef.current.emit('send_message', 
+          {
+            conversationId: selectedConversation,
+            senderId: auth.user._id,
+            senderName: auth.user.username,
+            text: messageContent,
+          },
+          (response: { success: boolean; message?: ChatMessage }) => {
+            if (response.success && response.message) {
+              console.log('Message sent successfully:', response.message);
+              // Message will be received via receive_message event
+            } else {
+              console.error('Failed to send message');
+              setMessageText(messageContent); // Restore message on error
+            }
+          }
+        );
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
+      setMessageText(messageContent); // Restore message on error
     }
   };
 

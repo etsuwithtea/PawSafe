@@ -35,7 +35,7 @@ export function setupSocketHandlers(io: Server) {
       senderId: string;
       senderName: string;
       text: string;
-    }) => {
+    }, callback?: (ack: any) => void) => {
       try {
         // Save message to database
         const message = new Message({
@@ -48,20 +48,30 @@ export function setupSocketHandlers(io: Server) {
 
         await message.save();
 
-        // Emit message to all users in the conversation room
-        io.to(data.conversationId).emit('receive_message', {
+        const messageData = {
           _id: message._id,
           conversationId: message.conversationId,
           senderId: message.senderId,
           senderName: message.senderName,
           text: message.text,
           timestamp: message.timestamp,
-        });
+        };
+
+        // Send acknowledgment back to sender
+        if (callback) {
+          callback({ success: true, message: messageData });
+        }
+
+        // Broadcast to all users in the conversation room (including sender)
+        io.to(data.conversationId).emit('receive_message', messageData);
 
         console.log(`Message sent in conversation ${data.conversationId}`);
       } catch (error) {
         console.error('Error saving message:', error);
         socket.emit('message_error', { message: 'Failed to send message' });
+        if (callback) {
+          callback({ success: false, message: 'Failed to send message' });
+        }
       }
     });
 
