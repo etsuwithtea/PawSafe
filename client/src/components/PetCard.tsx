@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, User, Clock, Bookmark, Info } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { savePet, unsavePet } from '../store/petActions';
+import { useToast } from './Toast';
 import ChatModal from './ChatModal';
 import type { Pet } from '../types/pet';
 
@@ -26,6 +27,7 @@ export default function PetCard({ pet }: PetCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { showToast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(pet.savedBy.includes(user?._id || ''));
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -53,6 +55,10 @@ export default function PetCard({ pet }: PetCardProps) {
   };
 
   const handleContact = () => {
+    if (!user) {
+      showToast('กรุณาเข้าสู่ระบบเพื่อติดต่อผู้อื่น', 'warning');
+      return;
+    }
     setIsChatOpen(true);
   };
 

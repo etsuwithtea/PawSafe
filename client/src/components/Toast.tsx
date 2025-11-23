@@ -3,7 +3,7 @@ import { useState } from 'react';
 export interface ToastMessage {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   duration?: number;
 }
 
@@ -12,7 +12,7 @@ let toastId = 0;
 export const useToast = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info', duration: number = 3000) => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', duration: number = 3000) => {
     const id = `toast-${toastId++}`;
     const newToast: ToastMessage = { id, message, type, duration };
     
@@ -53,6 +53,8 @@ export default function Toast({ toasts, onRemove, variant = 'default' }: ToastPr
               ? 'bg-green-500'
               : toast.type === 'error'
               ? 'bg-red-500'
+              : toast.type === 'warning'
+              ? 'bg-yellow-500'
               : 'bg-blue-500'
           }`}
           style={{ fontFamily: 'Poppins, Anuphan' }}

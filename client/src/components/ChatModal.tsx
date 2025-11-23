@@ -174,10 +174,10 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 z-40 flex items-end justify-end p-4 pointer-events-auto">
+    <div className="fixed inset-0 bg-transparent bg-opacity-20 z-40 flex items-end justify-end p-4 pointer-events-auto">
       <div className="bg-white rounded-2xl w-full md:w-[500px] h-[75vh] md:h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-t-2xl shrink-0">
           <div className="flex items-center gap-3">
