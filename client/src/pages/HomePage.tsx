@@ -31,25 +31,25 @@ export default function HomePage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch adopted pets
-        const adoptedResponse = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/pets?status=adopted&limit=1000`
+        // Fetch completed adopted pets
+        const completedPetsResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-pets?limit=1000`
         );
-        const adoptedData = await adoptedResponse.json();
+        const completedPetsData = await completedPetsResponse.json();
         
-        // Fetch returned lost pets
-        const returnedResponse = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets?status=returned&limit=1000`
+        // Fetch completed returned lost pets
+        const completedLostPetsResponse = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-lost-pets?limit=1000`
         );
-        const returnedData = await returnedResponse.json();
+        const completedLostPetsData = await completedLostPetsResponse.json();
 
-        const adoptedPets = adoptedData.data || [];
-        const returnedPets = returnedData.data || [];
+        const completedPets = completedPetsData.data || [];
+        const completedLostPets = completedLostPetsData.data || [];
 
-        const adoptedDogs = adoptedPets.filter((pet: any) => pet.species === 'dog').length;
-        const adoptedCats = adoptedPets.filter((pet: any) => pet.species === 'cat').length;
-        const adoptedOthers = adoptedPets.filter((pet: any) => pet.species === 'other').length;
-        const returnedCount = returnedPets.length;
+        const adoptedDogs = completedPets.filter((pet: any) => pet.species === 'dog').length;
+        const adoptedCats = completedPets.filter((pet: any) => pet.species === 'cat').length;
+        const adoptedOthers = completedPets.filter((pet: any) => pet.species === 'other').length;
+        const returnedCount = completedLostPets.length;
 
         setStats({
           adoptedDogs,
