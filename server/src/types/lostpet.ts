@@ -5,7 +5,7 @@ export interface ILostPet extends Document {
   species: 'dog' | 'cat' | 'other';
   age?: number;
   gender: 'male' | 'female' | 'unknown';
-  status: 'lost' | 'found';
+  status: 'lost' | 'found' | 'returned';
   location: string;
   locationDetails: string;
   lostDate: Date;

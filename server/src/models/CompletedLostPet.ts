@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import type { ILostPet } from '../types/index.js';
 
-const lostPetSchema = new Schema<ILostPet>(
+const completedLostPetSchema = new Schema<ILostPet>(
   {
     name: {
       type: String,
@@ -24,8 +24,8 @@ const lostPetSchema = new Schema<ILostPet>(
     },
     status: {
       type: String,
-      enum: ['lost', 'found', 'returned'],
-      default: 'lost',
+      enum: ['returned'],
+      default: 'returned',
       index: true,
     },
     location: {
@@ -79,7 +79,7 @@ const lostPetSchema = new Schema<ILostPet>(
   }
 );
 
-lostPetSchema.index({ name: 'text', description: 'text' });
-lostPetSchema.index({ status: 1, createdAt: -1 });
+completedLostPetSchema.index({ name: 'text', description: 'text' });
+completedLostPetSchema.index({ contactUserId: 1, createdAt: -1 });
 
-export const LostPet = mongoose.model<ILostPet>('LostPet', lostPetSchema);
+export const CompletedLostPet = mongoose.model<ILostPet>('CompletedLostPet', completedLostPetSchema);

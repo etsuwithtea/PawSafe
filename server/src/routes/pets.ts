@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { Pet } from '../models/Pet.js';
+import { CompletedPet } from '../models/CompletedPet.js';
 import { uploadPetImages } from '../middleware/uploadMiddleware.js';
 import fs from 'fs';
 import path from 'path';
@@ -171,6 +172,42 @@ router.put('/:id', async (req: Request, res: Response) => {
       return;
     }
 
+    // Check if status changed to 'adopted' BEFORE updating - move to completed
+    const oldStatus = pet.status;
+    if (status === 'adopted' && oldStatus !== 'adopted') {
+      // Create a completed pet record with updated data
+      const completedPet = new CompletedPet({
+        name: name !== undefined ? name : pet.name,
+        species: species !== undefined ? species : pet.species,
+        age: age !== undefined ? age : pet.age,
+        gender: gender !== undefined ? gender : pet.gender,
+        status: 'adopted',
+        location: location !== undefined ? location : pet.location,
+        locationDetails: locationDetails !== undefined ? locationDetails : pet.locationDetails,
+        description: description !== undefined ? description : pet.description,
+        characteristics: characteristics !== undefined ? characteristics : pet.characteristics,
+        images: images !== undefined ? images : pet.images,
+        contactUserId: pet.contactUserId,
+        contactName: pet.contactName,
+        contactPhone: pet.contactPhone,
+        contactEmail: pet.contactEmail,
+        adoptionCount: pet.adoptionCount,
+        savedBy: pet.savedBy,
+      });
+
+      await completedPet.save();
+
+      // Delete from Pet collection
+      await Pet.findByIdAndDelete(req.params.id);
+
+      res.status(200).json({
+        success: true,
+        message: 'Pet marked as adopted and moved to completed posts',
+        data: completedPet,
+      });
+      return;
+    }
+
     if (name !== undefined) pet.name = name;
     if (species !== undefined) pet.species = species;
     if (age !== undefined) pet.age = age;
@@ -181,8 +218,6 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (characteristics !== undefined) pet.characteristics = characteristics;
     if (images !== undefined) pet.images = images;
     if (status !== undefined) pet.status = status;
-
-    await pet.save();
 
     res.status(200).json({
       success: true,

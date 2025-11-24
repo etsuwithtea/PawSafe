@@ -11,6 +11,8 @@ import usersRoutes from './routes/users.js';
 import chatRoutes from './routes/chat.js';
 import petsRoutes from './routes/pets.js';
 import lostPetsRoutes from './routes/lostPets.js';
+import completedPetsRoutes from './routes/completedPets.js';
+import completedLostPetsRoutes from './routes/completedLostPets.js';
 import { setupSocketHandlers } from './socket/socketHandlers.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +35,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/pets', petsRoutes);
 app.use('/api/lost-pets', lostPetsRoutes);
+app.use('/api/completed-pets', completedPetsRoutes);
+app.use('/api/completed-lost-pets', completedLostPetsRoutes);
 
 app.use((err: any, req: any, res: any, next: any) => {
   if (err.code === 'LIMIT_FILE_SIZE') {

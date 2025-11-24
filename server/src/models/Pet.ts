@@ -24,7 +24,7 @@ const petSchema = new Schema<IPet>(
     },
     status: {
       type: String,
-      enum: ['available', 'adopted'],
+      enum: ['available', 'pending', 'adopted'],
       default: 'available',
       index: true,
     },

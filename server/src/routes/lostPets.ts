@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { LostPet } from '../models/LostPet.js';
+import { CompletedLostPet } from '../models/CompletedLostPet.js';
 import { uploadPetImages } from '../middleware/uploadMiddleware.js';
 import fs from 'fs';
 import path from 'path';
@@ -172,6 +173,42 @@ router.put('/:id', async (req: Request, res: Response) => {
       return;
     }
 
+    // Check if status changed to 'returned' BEFORE updating - move to completed
+    const oldStatus = lostPet.status;
+    if (status === 'returned' && oldStatus !== 'returned') {
+      // Create a completed lost pet record with updated data
+      const completedLostPet = new CompletedLostPet({
+        name: name !== undefined ? name : lostPet.name,
+        species: species !== undefined ? species : lostPet.species,
+        age: age !== undefined ? age : lostPet.age,
+        gender: gender !== undefined ? gender : lostPet.gender,
+        status: 'returned',
+        location: location !== undefined ? location : lostPet.location,
+        locationDetails: locationDetails !== undefined ? locationDetails : lostPet.locationDetails,
+        lostDate: lostDate !== undefined ? lostDate : lostPet.lostDate,
+        description: description !== undefined ? description : lostPet.description,
+        characteristics: characteristics !== undefined ? characteristics : lostPet.characteristics,
+        images: images !== undefined ? images : lostPet.images,
+        contactUserId: lostPet.contactUserId,
+        contactName: lostPet.contactName,
+        contactPhone: lostPet.contactPhone,
+        contactEmail: lostPet.contactEmail,
+        savedBy: lostPet.savedBy,
+      });
+
+      await completedLostPet.save();
+
+      // Delete from LostPet collection
+      await LostPet.findByIdAndDelete(req.params.id);
+
+      res.status(200).json({
+        success: true,
+        message: 'Lost pet marked as returned and moved to completed posts',
+        data: completedLostPet,
+      });
+      return;
+    }
+
     if (name !== undefined) lostPet.name = name;
     if (species !== undefined) lostPet.species = species;
     if (age !== undefined) lostPet.age = age;
@@ -183,8 +220,6 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (characteristics !== undefined) lostPet.characteristics = characteristics;
     if (images !== undefined) lostPet.images = images;
     if (status !== undefined) lostPet.status = status;
-
-    await lostPet.save();
 
     res.status(200).json({
       success: true,

@@ -20,8 +20,6 @@ export default function AdoptionPage() {
     (state) => state.pets
   );
   const [searchInput, setSearchInput] = useState('');
-  const [selectedProvince, setSelectedProvince] = useState<string>('');
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
   const [uniqueProvinces, setUniqueProvinces] = useState<string[]>([]);
   const [uniqueDistricts, setUniqueDistricts] = useState<string[]>([]);
   const [speciesCounts, setSpeciesCounts] = useState<Record<string, number>>({});

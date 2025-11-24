@@ -12,8 +12,10 @@ export default function MyPostsPage() {
   const { user } = useAppSelector((state) => state.auth);
   const [adoptionPosts, setAdoptionPosts] = useState<Pet[]>([]);
   const [lostPetPosts, setLostPetPosts] = useState<LostPet[]>([]);
+  const [completedAdoptionPosts, setCompletedAdoptionPosts] = useState<Pet[]>([]);
+  const [completedLostPetPosts, setCompletedLostPetPosts] = useState<LostPet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'adoption' | 'lost'>('adoption');
+  const [activeTab, setActiveTab] = useState<'adoption' | 'lost' | 'completed'>('adoption');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Pet | LostPet>>({});
   const [confirmModal, setConfirmModal] = useState<{
@@ -83,6 +85,48 @@ export default function MyPostsPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchCompletedAdoptionPosts = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-pets/user/${user?._id}?limit=1000`
+        );
+        const data = await response.json();
+        
+        if (data.data) {
+          setCompletedAdoptionPosts(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching completed adoption posts:', error);
+      }
+    };
+
+    if (user) {
+      fetchCompletedAdoptionPosts();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const fetchCompletedLostPetPosts = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-lost-pets/user/${user?._id}?limit=1000`
+        );
+        const data = await response.json();
+        
+        if (data.data) {
+          setCompletedLostPetPosts(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching completed lost pet posts:', error);
+      }
+    };
+
+    if (user) {
+      fetchCompletedLostPetPosts();
+    }
+  }, [user]);
+
   const handleDeletePost = async (petId: string, isLostPet: boolean) => {
     setConfirmModal({
       isOpen: true,
@@ -90,7 +134,22 @@ export default function MyPostsPage() {
       message: 'คุณแน่ใจหรือว่าต้องการลบโพสต์นี้? การลบไม่สามารถเลิกได้',
       onConfirm: async () => {
         try {
-          const endpoint = isLostPet ? 'lost-pets' : 'pets';
+          // Determine if post is from completed or active collection
+          let isCompleted = false;
+          if (isLostPet) {
+            isCompleted = completedLostPetPosts.some((post) => post._id === petId);
+          } else {
+            isCompleted = completedAdoptionPosts.some((post) => post._id === petId);
+          }
+
+          // Use appropriate endpoint based on completed status
+          let endpoint: string;
+          if (isCompleted) {
+            endpoint = isLostPet ? 'completed-lost-pets' : 'completed-pets';
+          } else {
+            endpoint = isLostPet ? 'lost-pets' : 'pets';
+          }
+
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${petId}`,
             {
@@ -102,10 +161,19 @@ export default function MyPostsPage() {
             throw new Error('Failed to delete post');
           }
 
+          // Update the appropriate state
           if (isLostPet) {
-            setLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
+            if (isCompleted) {
+              setCompletedLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
+            } else {
+              setLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
+            }
           } else {
-            setAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
+            if (isCompleted) {
+              setCompletedAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
+            } else {
+              setAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
+            }
           }
 
           showToast('ลบโพสต์สำเร็จ!', 'success');
@@ -120,23 +188,9 @@ export default function MyPostsPage() {
   };
 
   const handleStatusChange = async (petId: string, newStatus: string, isLostPet: boolean) => {
-    // Check if this is a final status change (adopted/returned)
-    if (
-      (newStatus === 'adopted' && !isLostPet) ||
-      (newStatus === 'returned' && isLostPet)
-    ) {
-      setConfirmModal({
-        isOpen: true,
-        title: 'สัตว์ได้บ้านแล้ว?',
-        message: 'เมื่อทำเครื่องหมายว่าสัตว์ได้บ้านแล้ว คุณต้องการให้โพสต์นี้อยู่หรือลบออก?',
-        onConfirm: async () => {
-          await updateStatus(petId, newStatus, isLostPet, false);
-          setConfirmModal({ ...confirmModal, isOpen: false });
-        },
-      });
-    } else {
-      updateStatus(petId, newStatus, isLostPet, false);
-    }
+    // Directly update status without confirmation
+    // The backend will automatically move to completed when status is 'adopted' or 'returned'
+    updateStatus(petId, newStatus, isLostPet, false);
   };
 
   const updateStatus = async (petId: string, newStatus: string, isLostPet: boolean, deleteAfter: boolean) => {
@@ -157,25 +211,58 @@ export default function MyPostsPage() {
         throw new Error('Failed to update post');
       }
 
-      if (isLostPet) {
-        setLostPetPosts((prev) =>
-          prev.map((post) =>
-            post._id === petId ? { ...post, status: newStatus as any } : post
-          )
-        );
+      // Check if status changed to final status (adopted/returned)
+      // These posts are automatically moved to completed on the backend
+      const isFinalStatus = 
+        (newStatus === 'adopted' && !isLostPet) ||
+        (newStatus === 'returned' && isLostPet);
+
+      if (isFinalStatus) {
+        // Remove from active posts since they're moved to completed
+        if (isLostPet) {
+          setLostPetPosts((prev) => prev.filter((post) => post._id !== petId));
+          showToast('สัตว์กลับบ้านแล้ว! โพสต์ได้ย้ายไปยัง "โพสต์ที่เสร็จสิ้น"', 'success');
+          // Refresh completed posts
+          const completedResponse = await fetch(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-lost-pets/user/${user?._id}?limit=1000`
+          );
+          const completedData = await completedResponse.json();
+          if (completedData.data) {
+            setCompletedLostPetPosts(completedData.data);
+          }
+        } else {
+          setAdoptionPosts((prev) => prev.filter((post) => post._id !== petId));
+          showToast('สัตว์ได้บ้านแล้ว! โพสต์ได้ย้ายไปยัง "โพสต์ที่เสร็จสิ้น"', 'success');
+          // Refresh completed posts
+          const completedResponse = await fetch(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-pets/user/${user?._id}?limit=1000`
+          );
+          const completedData = await completedResponse.json();
+          if (completedData.data) {
+            setCompletedAdoptionPosts(completedData.data);
+          }
+        }
       } else {
-        setAdoptionPosts((prev) =>
-          prev.map((post) =>
-            post._id === petId ? { ...post, status: newStatus as any } : post
-          )
-        );
+        // For other status changes, update the post locally
+        if (isLostPet) {
+          setLostPetPosts((prev) =>
+            prev.map((post) =>
+              post._id === petId ? { ...post, status: newStatus as any } : post
+            )
+          );
+        } else {
+          setAdoptionPosts((prev) =>
+            prev.map((post) =>
+              post._id === petId ? { ...post, status: newStatus as any } : post
+            )
+          );
+        }
+        showToast('อัปเดตสถานะสำเร็จ!', 'success');
       }
 
       if (deleteAfter) {
         setTimeout(() => handleDeletePost(petId, isLostPet), 500);
       }
-
-      showToast('อัปเดตสถานะสำเร็จ!', 'success');
     } catch (error) {
       console.error('Error updating post:', error);
       showToast('เกิดข้อผิดพลาดในการอัปเดต', 'error');
@@ -192,7 +279,7 @@ export default function MyPostsPage() {
     );
   }
 
-  const totalPosts = adoptionPosts.length + lostPetPosts.length;
+  const totalPosts = adoptionPosts.length + lostPetPosts.length + completedAdoptionPosts.length + completedLostPetPosts.length;
 
   return (
     <div className="w-full bg-gray-50 py-8" style={{ marginBottom: `${(40 + Math.ceil(totalPosts / 3) * 60)}px`, fontFamily: 'Poppins, Anuphan' }}>
@@ -220,7 +307,7 @@ export default function MyPostsPage() {
           </p>
         </div>
 
-        <div className="flex gap-4 mb-8 justify-center">
+        <div className="flex gap-4 mb-8 justify-center flex-wrap">
           <button
             onClick={() => setActiveTab('adoption')}
             className={`px-8 py-3 rounded-md text-sm cursor-pointer font-bold transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 ${
@@ -242,6 +329,17 @@ export default function MyPostsPage() {
             style={{ fontFamily: 'Poppins, Anuphan' }}
           >
             ตามหาสัตว์หาย ({lostPetPosts.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={`px-8 py-3 rounded-md text-sm cursor-pointer font-bold transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 ${
+              activeTab === 'completed'
+                ? 'text-white bg-black'
+                : 'text-black bg-gray-200 hover:bg-gray-300'
+            }`}
+            style={{ fontFamily: 'Poppins, Anuphan' }}
+          >
+            โพสต์ที่เสร็จสิ้น ({completedAdoptionPosts.length + completedLostPetPosts.length})
           </button>
         </div>
 
@@ -346,8 +444,76 @@ export default function MyPostsPage() {
                 )}
               </div>
             )}
+
+            {activeTab === 'completed' && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">โพสต์ที่เสร็จสิ้น</h2>
+                {completedAdoptionPosts.length === 0 && completedLostPetPosts.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-lg">
+                    <p className="text-gray-600">ยังไม่มีโพสต์ที่เสร็จสิ้น</p>
+                  </div>
+                ) : (
+                  <>
+                    {completedAdoptionPosts.length > 0 && (
+                      <div className="mb-8">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-700">ตามหาบ้าน (เสร็จสิ้น)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                          {completedAdoptionPosts.map((pet) => (
+                            <div key={pet._id} className="relative mb-6">
+                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                                <span className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-bold shadow-lg">
+                                  ✓ ได้บ้านแล้ว
+                                </span>
+                                <button
+                                  onClick={() => handleDeletePost(pet._id, false)}
+                                  className="px-2 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors flex items-center justify-center shadow-lg"
+                                  title="ลบโพสต์"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              <div className="h-full">
+                                <PetCard pet={pet} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {completedLostPetPosts.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-gray-700">ตามหาสัตว์หาย (เสร็จสิ้น)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                          {completedLostPetPosts.map((lostPet) => (
+                            <div key={lostPet._id} className="relative mb-6">
+                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                                <span className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-bold shadow-lg">
+                                  ✓ กลับบ้านแล้ว
+                                </span>
+                                <button
+                                  onClick={() => handleDeletePost(lostPet._id, true)}
+                                  className="px-2 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors flex items-center justify-center shadow-lg"
+                                  title="ลบโพสต์"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              <div className="h-full">
+                                <LostPetCard lostPet={lostPet} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </>
         )}
+
       </div>
 
       {editingId && (
