@@ -126,7 +126,7 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, species, age, gender, location, locationDetails, description, characteristics, images, contactUserId, contactName, contactPhone, contactEmail } = req.body;
 
-    if (!name || !species || !location || !description || !contactUserId || !contactName || !contactPhone || !contactEmail) {
+    if (!name || !species || !location || !description || !contactUserId || !contactName) {
       res.status(400).json({ success: false, message: 'Missing required fields' });
       return;
     }
