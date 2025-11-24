@@ -360,7 +360,7 @@ export default function MyPostsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {adoptionPosts.map((pet) => (
                       <div key={pet._id} className="relative mb-6">
-                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2 pointer-events-auto">
                           <select
                             value={pet.status}
                             onChange={(e) => handleStatusChange(pet._id, e.target.value, false)}
@@ -387,7 +387,7 @@ export default function MyPostsPage() {
                             <Trash2 size={16} />
                           </button>
                         </div>
-                        <div className="h-full">
+                        <div className="h-full relative z-10">
                           <PetCard pet={pet} />
                         </div>
                       </div>
@@ -408,7 +408,7 @@ export default function MyPostsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {lostPetPosts.map((lostPet) => (
                       <div key={lostPet._id} className="relative mb-6">
-                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                        <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2 pointer-events-auto">
                           <select
                             value={lostPet.status}
                             onChange={(e) => handleStatusChange(lostPet._id, e.target.value, true)}
@@ -435,7 +435,7 @@ export default function MyPostsPage() {
                             <Trash2 size={16} />
                           </button>
                         </div>
-                        <div className="h-full">
+                        <div className="h-full relative z-10">
                           <LostPetCard lostPet={lostPet} />
                         </div>
                       </div>
@@ -460,7 +460,7 @@ export default function MyPostsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           {completedAdoptionPosts.map((pet) => (
                             <div key={pet._id} className="relative mb-6">
-                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2 pointer-events-auto">
                                 <span className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-bold shadow-lg">
                                   ✓ ได้บ้านแล้ว
                                 </span>
@@ -472,7 +472,7 @@ export default function MyPostsPage() {
                                   <Trash2 size={16} />
                                 </button>
                               </div>
-                              <div className="h-full">
+                              <div className="h-full relative z-10">
                                 <PetCard pet={pet} />
                               </div>
                             </div>
@@ -487,7 +487,7 @@ export default function MyPostsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           {completedLostPetPosts.map((lostPet) => (
                             <div key={lostPet._id} className="relative mb-6">
-                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2">
+                              <div className="absolute top-0 right-0 flex gap-2 z-20 rounded-bl-lg p-2 pointer-events-auto">
                                 <span className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-bold shadow-lg">
                                   ✓ กลับบ้านแล้ว
                                 </span>
@@ -499,7 +499,7 @@ export default function MyPostsPage() {
                                   <Trash2 size={16} />
                                 </button>
                               </div>
-                              <div className="h-full">
+                              <div className="h-full relative z-10">
                                 <LostPetCard lostPet={lostPet} />
                               </div>
                             </div>
