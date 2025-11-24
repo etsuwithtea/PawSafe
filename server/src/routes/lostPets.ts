@@ -60,7 +60,14 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     if (search && typeof search === 'string' && search.trim()) {
-      filter.$text = { $search: search };
+      // Search in name, description, characteristics, and locationDetails
+      const searchRegex = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { locationDetails: searchRegex },
+        { characteristics: searchRegex }
+      ];
     }
 
     // Filter by province and district

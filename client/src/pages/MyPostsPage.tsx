@@ -533,6 +533,19 @@ export default function MyPostsPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-bold mb-2">ชนิดสัตว์</label>
+                <select
+                  value={(editFormData as any)?.species || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, species: e.target.value as 'dog' | 'cat' | 'other' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="">เลือกชนิดสัตว์</option>
+                  <option value="dog">สุนัข</option>
+                  <option value="cat">แมว</option>
+                  <option value="other">อื่น ๆ</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-bold mb-2">รายละเอียด</label>
                 <textarea
                   value={(editFormData as any)?.description || ''}

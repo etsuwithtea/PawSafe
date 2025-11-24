@@ -120,7 +120,7 @@ export default function AdoptionPage() {
           <div className="w-full lg:flex-1">
             <input
               type="text"
-              placeholder="ค้นหาสัตว์เลี้ยง..."
+              placeholder="ค้นหาด้วยชื่อ รายละเอียด หรือ สถานที่..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyPress={(e) => {

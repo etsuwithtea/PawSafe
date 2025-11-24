@@ -39,10 +39,16 @@ export default function LostPetDetailPage() {
       setIsSaved(foundLostPet.savedBy.includes(user?._id || ''));
       setLoading(false);
     } else {
-      // If not found in store, fetch from API
+      // If not found in store, fetch from API (try regular lost pets first, then completed)
       const fetchLostPet = async () => {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets/${id}`);
+          let response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/lost-pets/${id}`);
+          
+          // If not found in regular lost pets, try completed lost pets
+          if (!response.ok) {
+            response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-lost-pets/${id}`);
+          }
+          
           if (!response.ok) {
             throw new Error('Lost pet not found');
           }

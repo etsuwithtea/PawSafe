@@ -39,10 +39,16 @@ export default function PetDetailPage() {
       setIsSaved(foundPet.savedBy.includes(user?._id || ''));
       setLoading(false);
     } else {
-      // If not found in store, fetch from API
+      // If not found in store, fetch from API (try regular pets first, then completed)
       const fetchPet = async () => {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/pets/${id}`);
+          let response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/pets/${id}`);
+          
+          // If not found in regular pets, try completed pets
+          if (!response.ok) {
+            response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/completed-pets/${id}`);
+          }
+          
           if (!response.ok) {
             throw new Error('Pet not found');
           }
