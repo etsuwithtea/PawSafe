@@ -50,7 +50,7 @@ export default function Navbar() {
           <span className={`w-6 h-0.5 bg-white transition-transform ${isOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
         </button>
 
-        <div className="hidden sm:flex gap-2 md:gap-6 items-center pr-2 md:pr-4 ">
+        <div className="hidden md:flex gap-2 md:gap-6 items-center pr-2 md:pr-4 ">
           {user ? (
             <>
               <Link 
@@ -140,7 +140,95 @@ export default function Navbar() {
           )}
         </div>
       </div>
- 
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden border-t border-gray-200" style={{ backgroundColor: '#FFFDFA', fontFamily: 'Poppins, Anuphan' }}>
+          <div className="px-4 py-3 space-y-3">
+            <Link 
+              to="/adoption" 
+              onClick={() => setIsOpen(false)}
+              className="block text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+            >
+              ตามหาบ้าน
+            </Link>
+            <Link 
+              to="/lost-pets" 
+              onClick={() => setIsOpen(false)}
+              className="block text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+            >
+              ตามหาสัตว์หาย
+            </Link>
+            <Link 
+              to="/about" 
+              onClick={() => setIsOpen(false)}
+              className="block text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+            >
+              เกี่ยวกับเรา
+            </Link>
+
+            {user ? (
+              <>
+                <hr className="my-2" />
+                <Link 
+                  to="/chat" 
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+                >
+                  <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
+                  แชท
+                </Link>
+                <Link 
+                  to="/favorites" 
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+                >
+                  <Bookmark className="w-5 h-5" strokeWidth={1.5} />
+                  โปรดปรารถนา
+                </Link>
+                <Link 
+                  to="/profile" 
+                  onClick={() => setIsOpen(false)}
+                  className="block text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+                >
+                  โปรไฟล์ของฉัน
+                </Link>
+                <Link 
+                  to="/my-posts" 
+                  onClick={() => setIsOpen(false)}
+                  className="block text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
+                >
+                  โพสต์ของฉัน
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left text-white bg-black hover:bg-gray-800 transition-all duration-200 py-2 px-4 rounded-md"
+                >
+                  ล้อกเอาท์
+                </button>
+              </>
+            ) : (
+              <>
+                <hr className="my-2" />
+                <Link 
+                  to="/login" 
+                  onClick={() => setIsOpen(false)}
+                  className="block text-center px-3 py-2 border border-gray-700 rounded-md text-black bg-white hover:bg-black hover:text-white hover:border-black transition-all duration-200"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup" 
+                  onClick={() => setIsOpen(false)}
+                  className="block text-center px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-all duration-200"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

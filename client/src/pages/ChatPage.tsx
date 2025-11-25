@@ -480,7 +480,7 @@ export default function ChatPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setSelectedConversation(null)}
-                    className="text-blue-500 font-semibold text-sm"
+                    className="text-white bg-black font-semibold text-sm"
                   >
                     ← กลับ
                   </button>
