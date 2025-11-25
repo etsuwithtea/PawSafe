@@ -226,6 +226,8 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (images !== undefined) pet.images = images;
     if (status !== undefined) pet.status = status;
 
+    await pet.save();
+
     res.status(200).json({
       success: true,
       message: 'Pet updated successfully',
