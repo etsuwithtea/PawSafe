@@ -11,6 +11,9 @@ import AddPetPage from './pages/AddPetPage';
 import FavoritesPage from './pages/FavoritesPage';
 import MyPostsPage from './pages/MyPostsPage';
 import AboutPage from './pages/AboutPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import HelpPage from './pages/HelpPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PetDetailPage from './pages/PetDetailPage';
 import LostPetDetailPage from './pages/LostPetDetailPage';
@@ -38,6 +41,9 @@ export default function App() {
             <Route path="/lost-pets/:id" element={<LostPetDetailPage />} />
             <Route path="/add-pet" element={<AddPetPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/help" element={<HelpPage />} />
           </Route>
 
           <Route

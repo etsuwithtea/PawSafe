@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
   return (
     <footer className="text-white py-8 md:py-12 w-full" style={{ backgroundColor: '#3A2300' }}>
@@ -8,11 +10,11 @@ export default function Footer() {
             style={{ fontFamily: 'Pacifico, cursive' }}
           >PawSafe</span>
           <div className="flex flex-wrap gap-4 md:gap-8 ml-2 md:ml-4" style={{ fontFamily: 'Poppins' }}>
-            <a href="#" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">@PawSafe 2025</a>
-            <a href="#" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Terms</a>
-            <a href="#" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Privacy Policy</a>
-            <a href="#" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Help</a>
-            <a href="#" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">About</a>
+            <span className="text-gray-200 text-sm md:text-base cursor-pointer">@PawSafe 2025</span>
+            <Link to="/terms" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Terms</Link>
+            <Link to="/privacy-policy" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Privacy Policy</Link>
+            <Link to="/help" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">Help</Link>
+            <Link to="/about" className="text-gray-200 hover:text-white hover:underline hover:scale-110 transition-all duration-200 text-sm md:text-base cursor-pointer">About</Link>
           </div>
         </div>
       </div>
