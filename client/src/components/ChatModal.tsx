@@ -205,7 +205,7 @@ export default function ChatModal({ pet, isOpen, onClose }: ChatModalProps) {
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <X size={20} className="text-gray-600" />
+            <X size={20} className="text-white hover:text-black" />
           </button>
         </div>
 
