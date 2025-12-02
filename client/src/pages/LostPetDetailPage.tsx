@@ -3,7 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, User, Clock, Bookmark, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { saveLostPet, unsaveLostPet } from '../store/lostPetActions';
+import { useToast } from '../components/Toast';
+import Toast from '../components/Toast';
 import ChatModal from '../components/ChatModal';
+import AuthPromptModal from '../components/AuthPromptModal';
 import type { LostPet } from '../types/lostpet';
 
 const formatTimeAgo = (dateString: string): string => {
@@ -24,12 +27,14 @@ export default function LostPetDetailPage() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const lostPets = useAppSelector((state) => state.lostPets.lostPets);
+  const { toasts, showToast, removeToast } = useToast();
 
   const [lostPet, setLostPet] = useState<LostPet | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
@@ -66,7 +71,11 @@ export default function LostPetDetailPage() {
   }, [id, lostPets, user]);
 
   const handleSave = async () => {
-    if (!user || !lostPet) return;
+    if (!user) {
+      showToast('กรุณาล็อกอินเพื่อ save สัตว์ที่ต้องการ', 'error');
+      return;
+    }
+    if (!lostPet) return;
 
     setIsSaving(true);
     try {
@@ -85,6 +94,10 @@ export default function LostPetDetailPage() {
   };
 
   const handleContact = () => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
     setIsChatOpen(true);
   };
 
@@ -113,6 +126,7 @@ export default function LostPetDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8" style={{ fontFamily: 'Poppins, Anuphan' }}>
+      <Toast toasts={toasts} onRemove={removeToast} />
       <div className="max-w-4xl mx-auto px-4">
         {/* Back Button */}
         <button
@@ -244,6 +258,7 @@ export default function LostPetDetailPage() {
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />
+      <AuthPromptModal isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} />
     </div>
   );
 }

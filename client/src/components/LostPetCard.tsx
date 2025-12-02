@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import { saveLostPet, unsaveLostPet } from '../store/lostPetActions';
 import { useToast } from './Toast';
 import ChatModal from './ChatModal';
+import AuthPromptModal from './AuthPromptModal';
 import type { LostPet } from '../types/lostpet';
 
 const formatTimeAgo = (dateString: string): string => {
@@ -21,20 +22,23 @@ const formatTimeAgo = (dateString: string): string => {
 
 interface LostPetCardProps {
   lostPet: LostPet;
+  onShowToast?: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-export default function LostPetCard({ lostPet }: LostPetCardProps) {
+export default function LostPetCard({ lostPet, onShowToast }: LostPetCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { showToast } = useToast();
+  const { showToast: localShowToast } = useToast();
+  const showToast = onShowToast || localShowToast;
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(lostPet.savedBy.includes(user?._id || ''));
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const handleSave = async () => {
     if (!user) {
-      alert('Please login to save lost pets');
+      showToast('กรุณาล็อกอินเพื่อ save สัตว์ที่ต้องการ', 'error');
       return;
     }
 
@@ -56,7 +60,7 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
 
   const handleContact = () => {
     if (!user) {
-      showToast('กรุณาเข้าสู่ระบบเพื่อติดต่อผู้อื่น', 'warning');
+      setShowAuthPrompt(true);
       return;
     }
     setIsChatOpen(true);
@@ -174,6 +178,7 @@ export default function LostPetCard({ lostPet }: LostPetCardProps) {
       )}
 
       <ChatModal pet={lostPet as any} isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <AuthPromptModal isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} />
     </div>
   );
 }

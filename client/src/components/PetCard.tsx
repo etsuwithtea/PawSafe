@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../store/store';
 import { savePet, unsavePet } from '../store/petActions';
 import { useToast } from './Toast';
 import ChatModal from './ChatModal';
+import AuthPromptModal from './AuthPromptModal';
 import type { Pet } from '../types/pet';
 
 const formatTimeAgo = (dateString: string): string => {
@@ -21,20 +22,23 @@ const formatTimeAgo = (dateString: string): string => {
 
 interface PetCardProps {
   pet: Pet;
+  onShowToast?: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-export default function PetCard({ pet }: PetCardProps) {
+export default function PetCard({ pet, onShowToast }: PetCardProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { showToast } = useToast();
+  const { showToast: localShowToast } = useToast();
+  const showToast = onShowToast || localShowToast;
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(pet.savedBy.includes(user?._id || ''));
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const handleSave = async () => {
     if (!user) {
-      alert('Please login to save pets');
+      showToast('กรุณาล็อกอินเพื่อ save สัตว์ที่ต้องการ', 'error');
       return;
     }
 
@@ -56,7 +60,8 @@ export default function PetCard({ pet }: PetCardProps) {
 
   const handleContact = () => {
     if (!user) {
-      showToast('กรุณาเข้าสู่ระบบเพื่อติดต่อผู้อื่น', 'warning');
+      // show modal with Login / Signup actions
+      setShowAuthPrompt(true);
       return;
     }
     setIsChatOpen(true);
@@ -174,6 +179,7 @@ export default function PetCard({ pet }: PetCardProps) {
       )}
 
       <ChatModal pet={pet} isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <AuthPromptModal isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} />
     </div>
   );
 }

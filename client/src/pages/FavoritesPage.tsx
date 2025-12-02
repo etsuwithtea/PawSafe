@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '../store/store';
 import PetCard from '../components/PetCard';
 import LostPetCard from '../components/LostPetCard';
+import Toast, { useToast } from '../components/Toast';
 import { Heart } from 'lucide-react';
 import type { Pet } from '../types/pet';
 import type { LostPet } from '../types/lostpet';
 
 export default function FavoritesPage() {
   const { user } = useAppSelector((state) => state.auth);
+  const { toasts, showToast, removeToast } = useToast();
   const [activeTab, setActiveTab] = useState<'adoption' | 'lost'>('adoption');
   const [adoptionFavorites, setAdoptionFavorites] = useState<Pet[]>([]);
   const [lostPetFavorites, setLostPetFavorites] = useState<LostPet[]>([]);
@@ -81,6 +83,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8" style={{ fontFamily: 'Poppins, Anuphan' }}>
+      <Toast toasts={toasts} onRemove={removeToast} />
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-2" style={{ color: '#FFA600' }}>สมุดบันทึก</h1>

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import BackToTop from '../components/BackToTop';
+import Toast, { useToast } from '../components/Toast';
 import heroImage from '../assets/images/home/herosection_pic4.png';
 import adoptionImage from '../assets/images/home/herosection_pic2.png';
 import mapSectionImage from '../assets/images/home/mapsection_pic1.png';
@@ -21,12 +22,15 @@ interface Stats {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { toasts, showToast, removeToast } = useToast();
   const [stats, setStats] = useState<Stats>({
     adoptedDogs: 0,
     adoptedCats: 0,
     adoptedOthers: 0,
     returnedPets: 0,
   });
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isGridHovered, setIsGridHovered] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -69,9 +73,15 @@ export default function HomePage() {
     navigate('/adoption');
   };
 
+  const handleGridMouseMove = (e: any) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
   return (
-    <div style={{ backgroundColor: '#FFFDFA' }} className="w-full overflow-x-hidden">
-      <section style={{ backgroundColor: '#FFFDFA' }} className="relative pt-16 pb-0 w-full overflow-hidden">
+    <div style={{ background: 'linear-gradient(135deg, #FFFCFA 0%, #FFF9F3 50%, #FFFDF9 100%)' }} className="w-full overflow-x-hidden">
+      <Toast toasts={toasts} onRemove={removeToast} variant="top" />
+      <section style={{ background: 'linear-gradient(135deg, #FFFCFA 0%, #FFF9F3 50%, #FFFDF9 100%)' }} className="relative pt-16 pb-0 w-full overflow-hidden">
         <div className="flex flex-col items-center justify-center mb-0 mt-15 z-5 gap-4">
           <h1 
             className="text-3xl md:text-5xl font-bold text-center mb-2" 
@@ -104,9 +114,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8 w-full overflow-x-hidden">
+      <section style={{ backgroundColor: '#FFFDFA' }} className="py-24 px-4 md:px-8 w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
             <div className="flex justify-center overflow-hidden rounded-lg">
               <img 
                 src={mapSectionImage} 
@@ -115,9 +125,9 @@ export default function HomePage() {
               />
             </div>
             
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center gap-4">
               <h2 
-                className="text-2xl md:text-5xl font-bold mb-4"
+                className="text-2xl md:text-5xl font-bold mb-2"
                 style={{ fontFamily: 'Anuphan', color: '#FFA600' }}
               >ในปี 2568<br />
                 <span className="text-lg md:text-3xl">ประเทศไทยมีสัตว์หายเป็นจำนวนกว่า<br />6.65 ล้านตัว!</span>
@@ -132,8 +142,68 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8 relative w-full overflow-x-hidden">
+      <section
+        style={{ backgroundColor: '#FFFDFA' }}
+        className="py-20 px-4 md:px-8 relative w-full overflow-hidden"
+        onMouseMove={(e) => {
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        }}
+        onMouseEnter={() => setIsGridHovered(true)}
+        onMouseLeave={() => setIsGridHovered(false)}
+      >
+        <style>{`
+          @keyframes gridExpand {
+            0% { opacity: 0; transform: scale(0.08); }
+            100% { opacity: 0.12; transform: scale(1); }
+          }
+          .grid-animation {
+            position: absolute;
+            inset: 0;
+            background-image:
+              linear-gradient(0deg, transparent 24%, rgba(255,166,0,0.18) 25%, rgba(255,166,0,0.18) 26%, transparent 27%),
+              linear-gradient(90deg, transparent 24%, rgba(255,166,0,0.18) 25%, rgba(255,166,0,0.18) 26%, transparent 27%);
+            background-size: 40px 40px;
+            background-position: center;
+            animation: gridExpand 2.6s ease-out 1 forwards;
+            pointer-events: none;
+            opacity: 1;
+          }
+          .ambient-glow {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 40% 60%, rgba(255,196,120,0.10) 0px, rgba(255,196,120,0.06) 180px, rgba(255,196,120,0.02) 340px, transparent 700px);
+            filter: blur(30px);
+            mix-blend-mode: screen;
+            z-index: 2;
+            opacity: 1;
+          }
+          .spotlight {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,196,120,0.28) 0px, rgba(255,196,120,0.14) 100px, rgba(255,196,120,0.06) 220px, transparent 420px);
+            transition: opacity 180ms linear, transform 200ms ease;
+            opacity: 0;
+            mix-blend-mode: screen;
+            filter: blur(18px);
+            z-index: 3;
+          }
+          .spotlight.visible { opacity: 1; }
+        `}</style>
         <div className="max-w-6xl mx-auto relative w-full">
+          <div className="grid-animation"></div>
+          <div className="ambient-glow" />
+          <div
+            className={`spotlight ${isGridHovered ? 'visible' : ''}`}
+            style={{
+              // set CSS variables for radial position
+              ['--mx' as any]: `${mousePos.x}px`,
+              ['--my' as any]: `${mousePos.y}px`,
+            }}
+          />
+
           <div className="absolute inset-0 right-auto top-1/2 transform -translate-y-1/2 z-0 hidden md:flex justify-end pointer-events-none">
             <img 
               src={adoptSectionBgImage} 
@@ -143,7 +213,7 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center relative z-10">
             <div className="flex justify-center order-2 md:order-1 overflow-hidden rounded-lg">
               <img 
                 src={adoptSectionImage} 
@@ -153,13 +223,13 @@ export default function HomePage() {
               />
             </div>
             
-            <div className="flex flex-col justify-center order-1 md:order-2 user-select-none">
+            <div className="flex flex-col justify-center order-1 md:order-2 user-select-none gap-4">
               <h2 
-                className="text-2xl md:text-3xl font-bold mb-6"
+                className="text-2xl md:text-3xl font-bold mb-2"
                 style={{ fontFamily: 'Anuphan', color: '#FFA600' }}
               >เชื่อมโยงสัตว์ไร้บ้านสู่บ้านใหม่ที่ปลอดภัย</h2>
               <p 
-                className="text-gray-600 text-base md:text-lg mb-8"
+                className="text-gray-600 text-base md:text-lg"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >แพลตฟอร์มที่ใช้งานง่าย เพื่อตามหาบ้านใหม่ที่ปลอดภัย <br />ให้กับสัตว์จรจัดและช่วยคุณตามหาสัตว์เลี้ยงที่หายไป <br />ให้กลับสู่ครอบครัวได้อย่างรวดเร็ว</p>
             </div>
@@ -167,7 +237,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ backgroundColor: '#FFFDFA' }} className="py-20 px-4 md:px-8 w-full overflow-x-hidden">
+      <section style={{ background: 'linear-gradient(135deg, #FFFDFA 0%, #FFF8F0 50%, #FFFBF7 100%)' }} className="py-20 px-4 md:px-8 w-full overflow-x-hidden">
         <div className="max-w-6xl mx-auto w-full">
           <div className="text-center mb-16 px-2">
             <h2 

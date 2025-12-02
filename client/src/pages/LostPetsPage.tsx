@@ -12,6 +12,7 @@ import {
   setDistrictFilter,
 } from '../store/lostPetSlice';
 import LostPetCard from '../components/LostPetCard';
+import Toast, { useToast } from '../components/Toast';
 
 export default function LostPetsPage() {
   const dispatch = useAppDispatch();
@@ -19,6 +20,7 @@ export default function LostPetsPage() {
   const { lostPets, isLoading, filters, currentPage, totalPages } = useAppSelector(
     (state) => state.lostPets
   );
+  const { toasts, showToast, removeToast } = useToast();
   const [searchInput, setSearchInput] = useState('');
   const [uniqueProvinces, setUniqueProvinces] = useState<string[]>([]);
   const [uniqueDistricts, setUniqueDistricts] = useState<string[]>([]);
@@ -94,6 +96,7 @@ export default function LostPetsPage() {
 
   return (
     <div style={{ backgroundColor: '#FFFDFA' }} className="min-h-screen py-8">
+      <Toast toasts={toasts} onRemove={removeToast} />
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-8">
           <h1
@@ -211,7 +214,7 @@ export default function LostPetsPage() {
         {!isLoading && lostPets.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {lostPets.map((lostPet) => (
-              <LostPetCard key={lostPet._id} lostPet={lostPet} />
+              <LostPetCard key={lostPet._id} lostPet={lostPet} onShowToast={showToast} />
             ))}
           </div>
         )}
