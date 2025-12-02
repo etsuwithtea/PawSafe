@@ -7,9 +7,9 @@ export default function MainLayout() {
   const { toasts, removeToast } = useToast();
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         <Outlet />
       </main>
       <Footer />

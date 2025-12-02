@@ -35,14 +35,14 @@ export default function Navbar() {
           >PawSafe</span>
         </Link>
         
-        <div className="hidden md:flex gap-24 items-center flex-1 justify-center" style={{ fontFamily: 'Poppins, Anuphan' }}>
+        <div className="hidden lg:flex gap-24 items-center flex-1 justify-center" style={{ fontFamily: 'Poppins, Anuphan' }}>
           <Link to="/adoption" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาบ้าน</Link>
           <Link to="/lost-pets" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาสัตว์หาย</Link>
           <Link to="/about" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">เกี่ยวกับเรา</Link>
         </div>
 
         <button 
-          className="md:hidden flex flex-col gap-1 mr-2"
+          className="lg:hidden flex flex-col gap-1 mr-2"
           onClick={() => setIsOpen(!isOpen)}
         >
           <span className={`w-6 h-0.5 bg-white transition-transform ${isOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
@@ -50,7 +50,7 @@ export default function Navbar() {
           <span className={`w-6 h-0.5 bg-white transition-transform ${isOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
         </button>
 
-        <div className="hidden md:flex gap-2 md:gap-6 items-center pr-2 md:pr-4 ">
+        <div className="hidden lg:flex gap-2 md:gap-6 items-center pr-2 md:pr-4 ">
           {user ? (
             <>
               <Link 
@@ -143,7 +143,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden border-t border-gray-200" style={{ backgroundColor: '#FFFDFA', fontFamily: 'Poppins, Anuphan' }}>
+        <div className="lg:hidden border-t border-gray-200" style={{ backgroundColor: '#FFFDFA', fontFamily: 'Poppins, Anuphan' }}>
           <div className="px-4 py-3 space-y-3">
             <Link 
               to="/adoption" 
