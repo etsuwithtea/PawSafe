@@ -9,6 +9,7 @@ import { useNotification } from '../context/NotificationContext';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,10 +36,62 @@ export default function Navbar() {
           >PawSafe</span>
         </Link>
         
-        <div className="hidden lg:flex gap-24 items-center flex-1 justify-center" style={{ fontFamily: 'Poppins, Anuphan' }}>
-          <Link to="/adoption" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาบ้าน</Link>
-          <Link to="/lost-pets" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">ตามหาสัตว์หาย</Link>
-          <Link to="/about" className="text-gray-700 hover:text-black hover:font-bold hover:scale-110 transition-all duration-200 cursor-pointer">เกี่ยวกับเรา</Link>
+        <div className="hidden lg:flex gap-24 items-center flex-1 justify-center relative" style={{ fontFamily: 'Poppins, Anuphan' }}>
+          <style>{`
+            .nav-container {
+              position: relative;
+              display: flex;
+              gap: 1.5rem;
+              align-items: center;
+              flex: 1;
+              justify-content: center;
+            }
+            .nav-link {
+              position: relative;
+              padding: 0.5rem 1rem;
+              border-radius: 0.5rem;
+              transition: all 0.3s ease;
+            }
+            .nav-link::after {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background-color: rgb(254, 216, 180);
+              border-radius: 0.5rem;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+              z-index: -1;
+            }
+            .nav-link:hover::after {
+              opacity: 1;
+            }
+          `}</style>
+          <div className="nav-container">
+            <Link 
+              to="/adoption" 
+              className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
+              onMouseEnter={() => setHoveredIndex(0)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              ตามหาบ้าน
+            </Link>
+            <Link 
+              to="/lost-pets" 
+              className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
+              onMouseEnter={() => setHoveredIndex(1)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              ตามหาสัตว์หาย
+            </Link>
+            <Link 
+              to="/about" 
+              className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
+              onMouseEnter={() => setHoveredIndex(2)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              เกี่ยวกับเรา
+            </Link>
+          </div>
         </div>
 
         <button 

@@ -148,7 +148,7 @@ export default function HomePage() {
               <img 
                 src={adoptSectionImage} 
                 alt="Pet Adoption Card" 
-                className="w-full max-w-sm md:max-w-xl rounded-lg hover:shadow-2xl hover:scale-110 transition-all duration-300 cursor-pointer user-select-none"
+                className="w-full max-w-sm md:max-w-xl rounded-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer user-select-none"
                 draggable={false}
               />
             </div>
@@ -183,11 +183,13 @@ export default function HomePage() {
                 style={{ fontFamily: 'Anuphan', color: '#FFA600' }}
               >ตามหาบ้าน<br />(Adoption)
               </h3>
-              <img 
-                src={lostSectionImage1} 
-                alt="Adoption Icon" 
-                className="w-32 md:w-48 h-32 md:h-48 object-contain mb-8 hover:scale-110 transition-transform duration-300"
-              />
+              <div className="w-32 md:w-48 h-32 md:h-48 overflow-hidden rounded-lg mb-8 flex items-center justify-center">
+                <img 
+                  src={lostSectionImage1} 
+                  alt="Adoption Icon" 
+                  className="w-full h-full object-contain hover:scale-110 transition-transform duration-300"
+                />
+              </div>
               <p 
                 className="text-gray-600 text-base leading-relaxed"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
@@ -199,11 +201,13 @@ export default function HomePage() {
                 className="text-xl md:text-3xl font-bold mb-8"
                 style={{ fontFamily: 'Anuphan', color: '#FFA600' }}
               >ตามหาสัตว์หาย<br />(Lost & Found)</h3>
-              <img 
-                src={lostSectionImage2} 
-                alt="Lost & Found Icon" 
-                className="w-40 md:w-64 h-40 md:h-64 object-contain mb-8 hover:scale-110 transition-transform duration-300"
-              />
+              <div className="w-32 md:w-48 h-32 md:h-48 overflow-hidden rounded-lg mb-8 flex items-center justify-center">
+                <img 
+                  src={lostSectionImage2} 
+                  alt="Lost & Found Icon" 
+                  className="w-full h-full object-contain hover:scale-110 transition-transform duration-300"
+                />
+              </div>
               <p 
                 className="text-gray-600 text-base leading-relaxed"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
@@ -223,34 +227,40 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
-            <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <img 
-                src={foundSectionImage1} 
-                alt="Dogs" 
-                className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
-              />
+            <div className="flex flex-col items-center cursor-pointer">
+              <div className="w-44 md:w-56 h-44 md:h-56 overflow-hidden rounded-lg mb-6 flex items-center justify-center hover:scale-110 transition-transform duration-300">
+                <img 
+                  src={foundSectionImage1} 
+                  alt="Dogs" 
+                  className="w-full h-full object-contain hover:drop-shadow-lg transition-all duration-300"
+                />
+              </div>
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
                 {stats.adoptedDogs} ตัว
               </p>
             </div>
 
-            <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <img 
-                src={foundSectionImage2} 
-                alt="Cats" 
-                className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
-              />
+            <div className="flex flex-col items-center cursor-pointer">
+              <div className="w-44 md:w-56 h-44 md:h-56 overflow-hidden rounded-lg mb-6 flex items-center justify-center hover:scale-110 transition-transform duration-300">
+                <img 
+                  src={foundSectionImage2} 
+                  alt="Cats" 
+                  className="w-full h-full object-contain hover:drop-shadow-lg transition-all duration-300"
+                />
+              </div>
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
                 {stats.adoptedCats} ตัว
               </p>
             </div>
 
-            <div className="flex flex-col items-center hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <img 
-                src={foundSectionImage3} 
-                alt="Other Animals" 
-                className="w-44 md:w-56 h-44 md:h-56 object-contain mb-6 hover:drop-shadow-lg transition-all duration-300"
-              />
+            <div className="flex flex-col items-center cursor-pointer">
+              <div className="w-44 md:w-56 h-44 md:h-56 overflow-hidden rounded-lg mb-6 flex items-center justify-center hover:scale-110 transition-transform duration-300">
+                <img 
+                  src={foundSectionImage3} 
+                  alt="Other Animals" 
+                  className="w-full h-full object-contain hover:drop-shadow-lg transition-all duration-300"
+                />
+              </div>
               <p className="text-white text-2xl md:text-4xl font-bold" style={{ fontFamily: 'Anuphan' }}>
                 {stats.adoptedOthers} ตัว
               </p>
