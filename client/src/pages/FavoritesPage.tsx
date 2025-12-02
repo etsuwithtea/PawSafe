@@ -131,7 +131,7 @@ export default function FavoritesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {adoptionFavorites.map((pet) => (
-                  <PetCard key={pet._id} pet={pet} />
+                  <PetCard key={pet._id} pet={pet} onShowToast={showToast} />
                 ))}
               </div>
             )}
@@ -154,7 +154,7 @@ export default function FavoritesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {lostPetFavorites.map((lostPet) => (
-                  <LostPetCard key={lostPet._id} lostPet={lostPet} />
+                  <LostPetCard key={lostPet._id} lostPet={lostPet} onShowToast={showToast} />
                 ))}
               </div>
             )}
