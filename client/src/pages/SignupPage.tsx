@@ -20,6 +20,8 @@ export default function SignupPage() {
   });
 
   const [validationError, setValidationError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -159,9 +161,18 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>รหัสผ่าน</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-black font-semibold" style={{ fontFamily: 'Anuphan' }}>รหัสผ่าน</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-black bg-transparent hover:underline text-sm font-semibold" style={{ fontFamily: 'Poppins, Anuphan' }}
+                >
+                  {showPassword ? 'ซ่อน' : 'แสดง'}
+                </button>
+              </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -172,9 +183,18 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>ยืนยันรหัสผ่าน</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-gray-700 font-semibold" style={{ fontFamily: 'Anuphan' }}>ยืนยันรหัสผ่าน</label>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-black bg-transparent hover:underline text-sm font-semibold" style={{ fontFamily: 'Poppins, Anuphan' }}
+                >
+                  {showConfirmPassword ? 'ซ่อน' : 'แสดง'}
+                </button>
+              </div>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}

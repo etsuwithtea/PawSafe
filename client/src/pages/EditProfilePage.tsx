@@ -24,6 +24,8 @@ export default function EditProfilePage() {
     confirmPassword: '',
   });
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -241,11 +243,20 @@ export default function EditProfilePage() {
                 {showPasswordSection && (
                   <div className="mt-6 space-y-4">
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>
-                        รหัสผ่านใหม่
-                      </label>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-gray-700 font-semibold" style={{ fontFamily: 'Anuphan' }}>
+                          รหัสผ่านใหม่
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="text-black bg-transparent hover:underline text-sm font-semibold" style={{ fontFamily: 'Poppins, Anuphan' }}
+                        >
+                          {showNewPassword ? 'ซ่อน' : 'แสดง'}
+                        </button>
+                      </div>
                       <input
-                        type="password"
+                        type={showNewPassword ? 'text' : 'password'}
                         name="newPassword"
                         value={passwordData.newPassword}
                         onChange={handlePasswordChange}
@@ -256,11 +267,20 @@ export default function EditProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2" style={{ fontFamily: 'Anuphan' }}>
-                        ยืนยันรหัสผ่านใหม่
-                      </label>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-gray-700 font-semibold" style={{ fontFamily: 'Anuphan' }}>
+                          ยืนยันรหัสผ่านใหม่
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="text-black bg-transparent hover:underline text-sm font-semibold" style={{ fontFamily: 'Poppins, Anuphan' }}
+                        >
+                          {showConfirmPassword ? 'ซ่อน' : 'แสดง'}
+                        </button>
+                      </div>
                       <input
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         name="confirmPassword"
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
