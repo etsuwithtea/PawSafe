@@ -3,17 +3,18 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
-import { MessageCircle, Bookmark, Bell } from 'lucide-react';
+import { MessageCircle, Bookmark, Bell, X } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import type { Notification } from '../components/NotificationModal';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [showNotificationHistory, setShowNotificationHistory] = useState(false);
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { unreadCount, clearUnreadCount } = useNotification();
+  const { unreadCount, clearUnreadCount, notificationHistory } = useNotification();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -22,8 +23,13 @@ export default function Navbar() {
   };
 
   const handleNotificationClick = () => {
+    setShowNotificationHistory(true);
     clearUnreadCount();
-    navigate('/chat');
+  };
+
+  const handleSelectNotification = (conversationId: string) => {
+    navigate('/chat', { state: { conversationId } });
+    setShowNotificationHistory(false);
   };
 
   return (
@@ -70,24 +76,18 @@ export default function Navbar() {
             <Link 
               to="/adoption" 
               className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
-              onMouseEnter={() => setHoveredIndex(0)}
-              onMouseLeave={() => setHoveredIndex(null)}
             >
               ตามหาบ้าน
             </Link>
             <Link 
               to="/lost-pets" 
               className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
-              onMouseEnter={() => setHoveredIndex(1)}
-              onMouseLeave={() => setHoveredIndex(null)}
             >
               ตามหาสัตว์หาย
             </Link>
             <Link 
               to="/about" 
               className="nav-link text-gray-700 hover:text-gray-800 hover:font-bold hover:scale-105 cursor-pointer"
-              onMouseEnter={() => setHoveredIndex(2)}
-              onMouseLeave={() => setHoveredIndex(null)}
             >
               เกี่ยวกับเรา
             </Link>
@@ -120,10 +120,9 @@ export default function Navbar() {
                 <Bookmark className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />
               </Link>
 
-              <Link 
-                to="/chat" 
+              <button 
                 onClick={handleNotificationClick}
-                className="p-2 rounded-full transition-all duration-200 hover:scale-110 relative"
+                className="p-2 rounded-full transition-all duration-200 hover:scale-110 relative bg-transparent border-0 focus:outline-none cursor-pointer"
               >
                 <Bell className="w-6 h-6 text-gray-700 hover:text-black" strokeWidth={1.5} />
                 {unreadCount > 0 && (
@@ -131,7 +130,99 @@ export default function Navbar() {
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
-              </Link>
+              </button>
+
+              {/* Notification History Modal */}
+              {showNotificationHistory && (
+                <>
+                  {/* Overlay */}
+                  <div
+                    className="fixed inset-0 bg-black/50 z-40"
+                    onClick={() => setShowNotificationHistory(false)}
+                  />
+
+                  {/* Modal */}
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+                        <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Anuphan' }}>
+                          ข้อความ
+                        </h2>
+                        <button
+                          onClick={() => setShowNotificationHistory(false)}
+                          className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      {/* Notifications List */}
+                      <div className="flex-1 overflow-y-auto">
+                        {notificationHistory.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-full py-12">
+                            <MessageCircle size={48} className="text-gray-300 mb-3" />
+                            <p className="text-gray-500" style={{ fontFamily: 'Anuphan' }}>
+                              ไม่มีข้อความ
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-gray-100">
+                            {notificationHistory.map((notif: Notification) => (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleSelectNotification(notif.conversationId)}
+                                className="p-4 hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-transparent hover:border-l-blue-500"
+                              >
+                                <div className="flex items-start gap-4">
+                                  {/* Avatar */}
+                                  {notif.senderAvatar ? (
+                                    <img
+                                      src={notif.senderAvatar}
+                                      alt={notif.senderName}
+                                      className="w-14 h-14 rounded-full object-cover shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                      <MessageCircle size={24} className="text-blue-600" />
+                                    </div>
+                                  )}
+
+                                  {/* Content */}
+                                  <div className="flex-1 min-w-0">
+                                    <h3
+                                      className="font-semibold text-gray-900 text-sm truncate"
+                                      style={{ fontFamily: 'Anuphan, Poppins' }}
+                                    >
+                                      {notif.senderName}
+                                    </h3>
+                                    
+                                    <p
+                                      className="text-sm text-gray-600 line-clamp-2 mt-1"
+                                      style={{ fontFamily: 'Poppins, Anuphan' }}
+                                    >
+                                      {notif.message}
+                                    </p>
+
+                                    <p className="text-xs text-gray-500 mt-2">
+                                      {new Date(notif.timestamp).toLocaleString('th-TH', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="relative">
                 <button
@@ -237,8 +328,18 @@ export default function Navbar() {
                   className="flex items-center gap-2 text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2"
                 >
                   <Bookmark className="w-5 h-5" strokeWidth={1.5} />
-                  โปรดปรารถนา
+                  สมุดบันทึก
                 </Link>
+                <button 
+                  onClick={() => {
+                    handleNotificationClick();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center gap-2 text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2 w-full text-left bg-transparent border-0 cursor-pointer"
+                >
+                  <Bell className="w-5 h-5" strokeWidth={1.5} />
+                  ข้อความ
+                </button>
                 <Link 
                   to="/profile" 
                   onClick={() => setIsOpen(false)}

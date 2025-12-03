@@ -2,10 +2,12 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { useAppSelector } from '../store/store';
 import { useNavigate } from 'react-router-dom';
 import NotificationModal, { type Notification } from '../components/NotificationModal';
+import NotificationHistoryModal from '../components/NotificationHistoryModal';
 
 interface NotificationContextType {
   notification: Notification | null;
   unreadCount: number;
+  notificationHistory: Notification[];
   setNotification: (notification: Notification | null) => void;
   dismissNotification: () => void;
   clearUnreadCount: () => void;
@@ -16,6 +18,8 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAppSelector((state) => state.auth);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastCheckedTime, setLastCheckedTime] = useState<number>(Date.now());
   const navigate = useNavigate();
@@ -64,7 +68,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                   senderAvatar = senderData?.avatar || '';
                 }
 
-                setNotification({
+                const newNotif: Notification = {
                   id: msg._id,
                   senderName: msg.senderName,
                   senderAvatar,
@@ -72,17 +76,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                   conversationId: convId,
                   timestamp: msg.timestamp,
                   type: 'chat',
-                });
+                };
+
+                setNotification(newNotif);
+                setNotificationHistory((prev) => [newNotif, ...prev]);
               } catch (error) {
                 console.error('Error fetching sender info:', error);
-                setNotification({
+                const newNotif: Notification = {
                   id: msg._id,
                   senderName: msg.senderName,
                   message: msg.text,
                   conversationId: convId,
                   timestamp: msg.timestamp,
                   type: 'chat',
-                });
+                };
+                setNotification(newNotif);
+                setNotificationHistory((prev) => [newNotif, ...prev]);
               }
 
               setLastCheckedTime(Date.now());
@@ -115,6 +124,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const contextValue: NotificationContextType = {
     notification,
     unreadCount,
+    notificationHistory,
     setNotification,
     dismissNotification,
     clearUnreadCount: handleClearUnreadCount,
@@ -126,9 +136,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       <NotificationModal
         notification={notification}
         onClose={dismissNotification}
-        onReply={(conversationId) => {
+        onOpenHistory={() => setShowHistory(true)}
+      />
+      <NotificationHistoryModal
+        isOpen={showHistory}
+        notifications={notificationHistory}
+        onClose={() => setShowHistory(false)}
+        onSelectNotification={(conversationId) => {
           navigate('/chat', { state: { conversationId } });
-          dismissNotification();
         }}
       />
     </NotificationContext.Provider>

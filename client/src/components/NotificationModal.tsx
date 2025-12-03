@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, MessageCircle } from 'lucide-react';
+import { X, MessageCircle, Clock, ChevronRight } from 'lucide-react';
 
 export interface Notification {
   id: string;
@@ -14,101 +14,130 @@ export interface Notification {
 interface NotificationModalProps {
   notification: Notification | null;
   onClose: () => void;
-  onReply?: (conversationId: string) => void;
+  onOpenHistory?: () => void;
 }
+
+const formatTimeAgo = (timestamp: string): string => {
+  const now = new Date();
+  const msgTime = new Date(timestamp);
+  const diffMs = now.getTime() - msgTime.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'เพิ่งมา';
+  if (diffMins < 60) return `${diffMins} นาทีที่แล้ว`;
+  if (diffHours < 24) return `${diffHours} ชั่วโมงที่แล้ว`;
+  if (diffDays < 7) return `${diffDays} วันที่แล้ว`;
+  
+  return msgTime.toLocaleString('th-TH', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 export default function NotificationModal({
   notification,
   onClose,
-  onReply,
+  onOpenHistory,
 }: NotificationModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (notification) {
       setIsVisible(true);
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onClose, 300);
-      }, 5000);
-
-      return () => clearTimeout(timer);
+      if (!isHovered) {
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }, 6000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [notification, onClose]);
+  }, [notification, onClose, isHovered]);
 
   if (!notification) return null;
 
+  const formattedTime = formatTimeAgo(notification.timestamp);
+
   return (
     <div
-      className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+      className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="bg-white rounded-xl shadow-2xl border border-yellow-200 overflow-hidden max-w-sm w-full">
-        <div className="h-1 bg-linear-to-r from-yellow-400 to-yellow-500"></div>
+      <div className="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden max-w-sm w-96">
+        {/* Header with close button */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">ข้อความใหม่</p>
+          <button
+            onClick={() => {
+              setIsVisible(false);
+              setTimeout(onClose, 300);
+            }}
+            className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600"
+          >
+            <X size={16} />
+          </button>
+        </div>
 
+        {/* Content */}
         <div className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3 flex-1">
-              {notification.senderAvatar ? (
-                <img
-                  src={notification.senderAvatar}
-                  alt={notification.senderName}
-                  className="w-12 h-12 rounded-full object-cover shrink-0"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
-                  <MessageCircle size={24} className="text-yellow-600" />
-                </div>
-              )}
+          {/* Sender info */}
+          <div className="flex items-start gap-3 mb-3">
+            {notification.senderAvatar ? (
+              <img
+                src={notification.senderAvatar}
+                alt={notification.senderName}
+                className="w-10 h-10 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <MessageCircle size={20} className="text-blue-600" />
+              </div>
+            )}
 
-              <div className="flex-1 min-w-0">
-                <h3
-                  className="font-bold text-gray-900 text-sm truncate"
-                  style={{ fontFamily: 'Poppins, Anuphan' }}
-                >
-                  {notification.senderName}
-                </h3>
-                <p className="text-xs text-gray-500">ส่งข้อความถึงคุณ</p>
+            <div className="flex-1 min-w-0">
+              <h3
+                className="font-semibold text-gray-900 text-sm"
+                style={{ fontFamily: 'Anuphan, Poppins' }}
+              >
+                {notification.senderName}
+              </h3>
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                <Clock size={12} />
+                <span>{formattedTime}</span>
               </div>
             </div>
-
-            <button
-              onClick={() => {
-                setIsVisible(false);
-                setTimeout(onClose, 300);
-              }}
-              className="p-1 rounded-full hover:bg-gray-100 transition-colors shrink-0 text-gray-400 hover:text-gray-600"
-            >
-              <X size={18} />
-            </button>
           </div>
 
+          {/* Message preview */}
           <div
-            className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200"
+            className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100"
             style={{ fontFamily: 'Poppins, Anuphan' }}
           >
             <p className="text-sm text-gray-800 line-clamp-3">{notification.message}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {new Date(notification.timestamp).toLocaleTimeString('th-TH', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
           </div>
 
+          {/* Action button */}
           <button
             onClick={() => {
-              if (onReply) {
-                onReply(notification.conversationId);
+              if (onOpenHistory) {
+                onOpenHistory();
               }
               setIsVisible(false);
               setTimeout(onClose, 300);
             }}
-            className="w-full px-4 py-2 bg-linear-to-r from-yellow-400 to-yellow-500 text-gray-900 font-semibold rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all transform hover:scale-105 active:scale-95 text-sm"
+            className="w-full px-3 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center justify-center gap-2"
             style={{ fontFamily: 'Poppins, Anuphan' }}
           >
-            ตอบกลับ
+            ดูข้อความทั้งหมด
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
