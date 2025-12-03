@@ -24,8 +24,9 @@ export default function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
+    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 40000 }}>
+      <div className="fixed inset-0 bg-black/50" style={{ zIndex: 39999 }} onClick={onCancel} />
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl relative" style={{ zIndex: 40000 }}>
         <div className="flex items-start justify-between mb-4">
           <h2 className="text-xl font-bold" style={{ fontFamily: 'Anuphan', color: '#FFA600' }}>
             {title}

@@ -33,7 +33,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="shadow-sm relative z-10" style={{ backgroundColor: '#FFFDFA' }}>
+    <nav className="shadow-sm relative z-20" style={{ backgroundColor: '#FFFDFA' }}>
       <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center pr-2 md:pr-4 hover:scale-110 transition-transform duration-300">
           <span 
