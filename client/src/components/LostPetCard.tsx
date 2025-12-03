@@ -144,21 +144,23 @@ export default function LostPetCard({ lostPet, onShowToast }: LostPetCardProps) 
               stroke={isSaved ? "white" : "currentColor"}
             />
           </button>
-          <button 
-            onClick={handleContact}
-            className="flex-1 px-4 py-2 font-bold rounded-lg transition-colors duration-200 text-sm flex items-center justify-center gap-2"
-            style={{ backgroundColor: '#FFA600', color: '#1f2937' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#000000';
-              e.currentTarget.style.color = '#ffffff';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFA600';
-              e.currentTarget.style.color = '#1f2937';
-            }}
-          >
-            ติดต่อ
-          </button>
+          {user?._id !== lostPet.contactUserId && (
+            <button 
+              onClick={handleContact}
+              className="flex-1 px-4 py-2 font-bold rounded-lg transition-colors duration-200 text-sm flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#FFA600', color: '#1f2937' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#000000';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFA600';
+                e.currentTarget.style.color = '#1f2937';
+              }}
+            >
+              ติดต่อ
+            </button>
+          )}
         </div>
       </div>
 
