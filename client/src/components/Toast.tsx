@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface ToastMessage {
   id: string;
@@ -13,10 +14,20 @@ export const useToast = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', duration: number = 3000) => {
+    // Prevent duplicate toasts with the same message and type
+    const duplicate = (prev: ToastMessage[]) => prev.some((t) => t.message === message && t.type === type);
+
+    if (duplicate((toasts as ToastMessage[]))) {
+      return null as any;
+    }
+
     const id = `toast-${toastId++}`;
     const newToast: ToastMessage = { id, message, type, duration };
-    
-    setToasts((prev) => [...prev, newToast]);
+
+    setToasts((prev) => {
+      if (duplicate(prev)) return prev;
+      return [...prev, newToast];
+    });
 
     if (duration > 0) {
       setTimeout(() => {
@@ -43,13 +54,19 @@ interface ToastProps {
 export default function Toast({ toasts, onRemove, variant = 'default' }: ToastProps) {
   const isTopVariant = variant === 'top';
   
-  return (
-    <div className={`fixed z-50 flex flex-col gap-2 ${isTopVariant ? 'top-0 left-0 right-0' : 'top-4 right-4'}`}>
+  const container = (
+    <div
+      className={`fixed flex flex-col gap-2 ${isTopVariant ? 'top-0 left-0 right-0' : 'top-4 right-4'}`}
+      style={{ zIndex: 99999 }}
+    >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={onRemove} variant={variant} />
       ))}
     </div>
   );
+
+  if (typeof document === 'undefined') return container;
+  return createPortal(container, document.body);
 }
 
 function ToastItem({ toast, onRemove, variant }: { toast: ToastMessage; onRemove: (id: string) => void; variant?: 'default' | 'dark' | 'top' }) {

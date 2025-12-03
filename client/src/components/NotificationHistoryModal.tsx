@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MessageCircle, Clock } from 'lucide-react';
 
 export interface NotificationItem {
@@ -68,16 +69,17 @@ export default function NotificationHistoryModal({
     notifications: NotificationItem[];
   }>);
 
-  return (
+  const container = (
     <>
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50 z-40"
+        style={{ zIndex: 999998 }}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 999999 }}>
         <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
@@ -169,4 +171,7 @@ export default function NotificationHistoryModal({
       </div>
     </>
   );
+
+  if (typeof document === 'undefined') return container;
+  return createPortal(container, document.body);
 }

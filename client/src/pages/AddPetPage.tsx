@@ -180,8 +180,9 @@ export default function AddPetPage() {
         );
       }
 
-      showToast('โพสต์สัตว์เลี้ยงสำเร็จ!', 'success');
-      navigate(navigationRoute);
+      // Navigate with success message state so destination page can show a top green toast
+      const successMessage = `ได้โพสต์ "${formData.name}" แล้ว`;
+      navigate(navigationRoute, { state: { postSuccess: successMessage } });
     } catch (error) {
       console.error('Error adding pet:', error);
       showToast('เกิดข้อผิดพลาดในการโพสต์', 'error');

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MessageCircle, Clock, ChevronRight } from 'lucide-react';
 
 export interface Notification {
@@ -60,14 +61,14 @@ export default function NotificationModal({
   }, [notification, onClose, isHovered]);
 
   if (!notification) return null;
-
   const formattedTime = formatTimeAgo(notification.timestamp);
 
-  return (
+  const container = (
     <div
       className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
+      style={{ zIndex: 999999 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -143,4 +144,9 @@ export default function NotificationModal({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return container;
+  return createPortal(container, document.body);
+
+  
 }

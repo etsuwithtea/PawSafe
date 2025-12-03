@@ -330,16 +330,7 @@ export default function Navbar() {
                   <Bookmark className="w-5 h-5" strokeWidth={1.5} />
                   สมุดบันทึก
                 </Link>
-                <button 
-                  onClick={() => {
-                    handleNotificationClick();
-                    setIsOpen(false);
-                  }}
-                  className="flex items-center gap-2 text-gray-700 hover:text-black hover:font-bold transition-all duration-200 py-2 w-full text-left bg-transparent border-0 cursor-pointer"
-                >
-                  <Bell className="w-5 h-5" strokeWidth={1.5} />
-                  ข้อความ
-                </button>
+                {/* Notification button removed on mobile to simplify navbar */}
                 <Link 
                   to="/profile" 
                   onClick={() => setIsOpen(false)}

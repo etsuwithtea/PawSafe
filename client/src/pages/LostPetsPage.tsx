@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import {
@@ -21,6 +22,17 @@ export default function LostPetsPage() {
     (state) => state.lostPets
   );
   const { toasts, showToast, removeToast } = useToast();
+  const location = useLocation();
+
+  useEffect(() => {
+    if ((location as any)?.state?.postSuccess) {
+      const msg = (location as any).state.postSuccess as string;
+      showToast(msg, 'success', 4000);
+      try {
+        window.history.replaceState({}, document.title);
+      } catch {}
+    }
+  }, [location]);
   const [searchInput, setSearchInput] = useState('');
   const [uniqueProvinces, setUniqueProvinces] = useState<string[]>([]);
   const [uniqueDistricts, setUniqueDistricts] = useState<string[]>([]);
@@ -96,7 +108,7 @@ export default function LostPetsPage() {
 
   return (
     <div style={{ backgroundColor: '#FFFDFA' }} className="min-h-screen py-8">
-      <Toast toasts={toasts} onRemove={removeToast} />
+      <Toast toasts={toasts} onRemove={removeToast} variant="top" />
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-8">
           <h1
