@@ -37,7 +37,7 @@ export default function LostPetsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [uniqueProvinces, setUniqueProvinces] = useState<string[]>([]);
   const [uniqueDistricts, setUniqueDistricts] = useState<string[]>([]);
-  const [speciesCounts, setSpeciesCounts] = useState<Record<string, number>>({});
+  const [allLostPetsData, setAllLostPetsData] = useState<any[]>([]);
   const [provinceCounts, setProvinceCounts] = useState<Record<string, number>>({});
   const [districtCounts, setDistrictCounts] = useState<Record<string, number>>({});
 
@@ -69,6 +69,38 @@ export default function LostPetsPage() {
     dispatch(setDistrictFilter(''));
   };
 
+  const calculateSpeciesCounts = () => {
+    const counts: Record<string, number> = { dog: 0, cat: 0, other: 0 };
+    
+    allLostPetsData.forEach((lostPet: any) => {
+      let matches = true;
+      
+      // Check province filter
+      if (filters.province) {
+        const [, province] = lostPet.location?.split(', ') || [];
+        if (province !== filters.province) {
+          matches = false;
+        }
+      }
+      
+      // Check district filter
+      if (matches && filters.district) {
+        const [district] = lostPet.location?.split(', ') || [];
+        if (district !== filters.district) {
+          matches = false;
+        }
+      }
+      
+      if (matches && lostPet.species) {
+        counts[lostPet.species] = (counts[lostPet.species] || 0) + 1;
+      }
+    });
+    
+    return counts;
+  };
+
+  const speciesCounts = calculateSpeciesCounts();
+
   useEffect(() => {
     const fetchLostPetsForLocations = async () => {
       try {
@@ -79,15 +111,10 @@ export default function LostPetsPage() {
         
         const provinces = new Set<string>();
         const districts = new Set<string>();
-        const pSpeciesCounts: Record<string, number> = { dog: 0, cat: 0, other: 0 };
         const pProvinceCounts: Record<string, number> = {};
         const pDistrictCounts: Record<string, number> = {};
         
         data.data.forEach((lostPet: any) => {
-          if (lostPet.species) {
-            pSpeciesCounts[lostPet.species] = (pSpeciesCounts[lostPet.species] || 0) + 1;
-          }
-          
           if (lostPet.location) {
             const [district, province] = lostPet.location.split(', ');
             if (province) {
@@ -101,9 +128,9 @@ export default function LostPetsPage() {
           }
         });
         
+        setAllLostPetsData(data.data);
         setUniqueProvinces(Array.from(provinces).sort());
         setUniqueDistricts(Array.from(districts).sort());
-        setSpeciesCounts(pSpeciesCounts);
         setProvinceCounts(pProvinceCounts);
         setDistrictCounts(pDistrictCounts);
       } catch (error) {

@@ -38,7 +38,7 @@ export default function AdoptionPage() {
   const [searchInput, setSearchInput] = useState('');
   const [uniqueProvinces, setUniqueProvinces] = useState<string[]>([]);
   const [uniqueDistricts, setUniqueDistricts] = useState<string[]>([]);
-  const [speciesCounts, setSpeciesCounts] = useState<Record<string, number>>({});
+  const [allPetsData, setAllPetsData] = useState<any[]>([]);
   const [provinceCounts, setProvinceCounts] = useState<Record<string, number>>({});
   const [districtCounts, setDistrictCounts] = useState<Record<string, number>>({});
 
@@ -70,6 +70,38 @@ export default function AdoptionPage() {
     dispatch(setDistrictFilter(''));
   };
 
+  const calculateSpeciesCounts = () => {
+    const counts: Record<string, number> = { dog: 0, cat: 0, other: 0 };
+    
+    allPetsData.forEach((pet: any) => {
+      let matches = true;
+      
+      // Check province filter
+      if (filters.province) {
+        const [, province] = pet.location?.split(', ') || [];
+        if (province !== filters.province) {
+          matches = false;
+        }
+      }
+      
+      // Check district filter
+      if (matches && filters.district) {
+        const [district] = pet.location?.split(', ') || [];
+        if (district !== filters.district) {
+          matches = false;
+        }
+      }
+      
+      if (matches && pet.species) {
+        counts[pet.species] = (counts[pet.species] || 0) + 1;
+      }
+    });
+    
+    return counts;
+  };
+
+  const speciesCounts = calculateSpeciesCounts();
+
   useEffect(() => {
     const fetchPetsForLocations = async () => {
       try {
@@ -80,15 +112,10 @@ export default function AdoptionPage() {
         
         const provinces = new Set<string>();
         const districts = new Set<string>();
-        const pSpeciesCounts: Record<string, number> = { dog: 0, cat: 0, other: 0 };
         const pProvinceCounts: Record<string, number> = {};
         const pDistrictCounts: Record<string, number> = {};
         
         data.data.forEach((pet: any) => {
-          if (pet.species) {
-            pSpeciesCounts[pet.species] = (pSpeciesCounts[pet.species] || 0) + 1;
-          }
-          
           if (pet.location) {
             const [district, province] = pet.location.split(', ');
             if (province) {
@@ -102,9 +129,9 @@ export default function AdoptionPage() {
           }
         });
         
+        setAllPetsData(data.data);
         setUniqueProvinces(Array.from(provinces).sort());
         setUniqueDistricts(Array.from(districts).sort());
-        setSpeciesCounts(pSpeciesCounts);
         setProvinceCounts(pProvinceCounts);
         setDistrictCounts(pDistrictCounts);
       } catch (error) {

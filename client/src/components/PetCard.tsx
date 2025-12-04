@@ -35,6 +35,7 @@ export default function PetCard({ pet, onShowToast }: PetCardProps) {
   const [isSaved, setIsSaved] = useState(pet.savedBy.includes(user?._id || ''));
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const handleSave = async () => {
     if (!user) {
@@ -75,11 +76,32 @@ export default function PetCard({ pet, onShowToast }: PetCardProps) {
     <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full" style={{ fontFamily: 'Poppins, Anuphan' }}>
       <div className="relative w-full h-48 bg-gray-200 overflow-hidden shrink-0">
         {pet.images && pet.images.length > 0 ? (
-          <img
-            src={pet.images[0]}
-            alt={pet.name}
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img
+              src={pet.images[currentImageIndex]}
+              alt={pet.name}
+              className="w-full h-full object-cover"
+            />
+            {pet.images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? pet.images.length - 1 : prev - 1))}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1 rounded-full transition-all"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => setCurrentImageIndex((prev) => (prev === pet.images.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1 rounded-full transition-all"
+                >
+                  ▶
+                </button>
+                <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+                  {currentImageIndex + 1}/{pet.images.length}
+                </div>
+              </>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-300">
             <span className="text-gray-500 text-center text-sm">ยังไม่มีรูปภาพ</span>
@@ -173,7 +195,10 @@ export default function PetCard({ pet, onShowToast }: PetCardProps) {
                 key={idx}
                 src={image}
                 alt={`${idx + 1}`}
-                className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`w-16 h-16 object-cover rounded cursor-pointer transition-all shrink-0 ${
+                  currentImageIndex === idx ? 'ring-2 ring-black opacity-100' : 'hover:opacity-80 opacity-70'
+                }`}
               />
             ))}
           </div>
