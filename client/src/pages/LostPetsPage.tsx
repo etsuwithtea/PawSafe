@@ -14,6 +14,7 @@ import {
 } from '../store/lostPetSlice';
 import LostPetCard from '../components/LostPetCard';
 import Toast, { useToast } from '../components/Toast';
+import { provinceDistricts } from '../data/thaiLocations';
 
 export default function LostPetsPage() {
   const dispatch = useAppDispatch();
@@ -59,6 +60,13 @@ export default function LostPetsPage() {
 
   const handleSearch = () => {
     dispatch(setSearchQuery(searchInput));
+  };
+
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedProvince = e.target.value;
+    dispatch(setProvinceFilter(selectedProvince));
+    // Reset district filter when province changes
+    dispatch(setDistrictFilter(''));
   };
 
   useEffect(() => {
@@ -155,7 +163,7 @@ export default function LostPetsPage() {
               </span>
               <select
                 value={filters.province}
-                onChange={(e) => dispatch(setProvinceFilter(e.target.value))}
+                onChange={handleProvinceChange}
                 className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >
@@ -175,15 +183,20 @@ export default function LostPetsPage() {
               <select
                 value={filters.district}
                 onChange={(e) => dispatch(setDistrictFilter(e.target.value))}
-                className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none"
+                disabled={!filters.province}
+                className="px-4 py-2 rounded-full font-bold text-sm bg-black text-white border-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ fontFamily: 'Poppins, Anuphan' }}
               >
                 <option value="">เลือกอำเภอ</option>
-                {uniqueDistricts.map((district) => (
-                  <option key={district} value={district}>
-                    {district} ({districtCounts[district] || 0})
-                  </option>
-                ))}
+                {filters.province && provinceDistricts[filters.province] && (
+                  provinceDistricts[filters.province]
+                    .filter((district) => districtCounts[district] && districtCounts[district] > 0)
+                    .map((district) => (
+                      <option key={district} value={district}>
+                        {district} ({districtCounts[district] || 0})
+                      </option>
+                    ))
+                )}
               </select>
             </div>
 
