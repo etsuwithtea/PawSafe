@@ -229,16 +229,22 @@ export default function PetDetailPage() {
 
               <button
                 onClick={handleContact}
-                className="w-full px-4 py-3 font-bold rounded-lg transition-colors duration-200 text-sm"
+                disabled={user?._id === pet?.contactUserId}
+                className="w-full px-4 py-3 font-bold rounded-lg transition-colors duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#FFA600', color: '#1f2937' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#000000';
-                  e.currentTarget.style.color = '#ffffff';
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = '#000000';
+                    e.currentTarget.style.color = '#ffffff';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FFA600';
-                  e.currentTarget.style.color = '#1f2937';
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = '#FFA600';
+                    e.currentTarget.style.color = '#1f2937';
+                  }
                 }}
+                title={user?._id === pet?.contactUserId ? 'คุณเป็นเจ้าของโพสต์นี้' : ''}
               >
                 ติดต่อเจ้าของ
               </button>
